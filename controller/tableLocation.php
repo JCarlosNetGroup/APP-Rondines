@@ -13,7 +13,7 @@ try {
                 descripcion, 
                 latitud, 
                 longitud, 
-                estado 
+                estado, qr_path
 
             FROM ubicacion";
 

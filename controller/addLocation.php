@@ -27,12 +27,16 @@ try {
         'estado' => $_POST['estado'],
     ]);
 
+    // Obtener el ID de la ubicación recién insertada
+    $ubicacionId = $connection->lastInsertId();
+
     // Confirmar la transacción
     $connection->commit();
 
     echo json_encode([
         'success' => true,
-        'message' => 'Ubicación registrada correctamente'
+        'message' => 'Ubicación registrada correctamente',
+        'id' => $ubicacionId // Devolvemos el ID para el QR
     ]);
 
 } catch (PDOException $e) {
