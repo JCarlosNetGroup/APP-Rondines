@@ -17,6 +17,7 @@ try {
     // Actualizar la ubicación
     $stmt = $connection->prepare("UPDATE ubicacion SET 
                                 nombre = :nombre,
+                                descripcion = :descripcion,
                                 latitud = :latitud,
                                 longitud = :longitud,
                                 estado = :estado
@@ -24,6 +25,7 @@ try {
 
     $stmt->execute([
         'nombre' => $_POST['nombre'],
+        'descripcion' => $_POST['descripcion'],
         'latitud' => $_POST['latitud'],
         'longitud' => $_POST['longitud'],
         'estado' => $_POST['estado'],

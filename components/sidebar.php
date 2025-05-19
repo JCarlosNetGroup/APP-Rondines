@@ -39,14 +39,14 @@
                         </li>
 
                         <li>
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="../pages/rondines.php">
                                 <i class="bi bi-repeat px-2"></i>
                                 <span class="txt-collapsed">Rondines</span>
                             </a>
                         </li>
 
                         <li>
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="../pages/reportes.php">
                                 <i class="bi bi-journals px-2"></i>
                                 <span class="txt-collapsed">Reportes</span>
                             </a>
