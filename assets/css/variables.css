@@ -1,0 +1,12 @@
+/* -------------------
+* Variables de estilo
+--------------------*/
+
+:root {
+
+    --color-fondo: rgb(245, 246, 247);
+    --color-componente: rgb(40, 55, 71);
+    --color-icons-sidebar: #fff;
+    --color-hover-buttons: rgb(60, 75, 91);
+}
+

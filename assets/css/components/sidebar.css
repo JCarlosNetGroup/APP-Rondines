@@ -1,0 +1,110 @@
+@import url(../variables.css);
+
+
+/* * Estilos de Sitebar, estado desplegado. */
+
+.aside-menu {
+    width: 185px;
+    height: 100vh;
+    background-color: var(--color-componente);
+    box-shadow: 5px 0px 12px rgba(0, 0, 0, 0.4);
+    position: sticky;
+    top: 0;
+    transition: width .2s ease-out;
+}
+
+.aside-menu header {
+    display: flex;
+    /* Para alinear el logo y el botón */
+    align-items: center;
+    /* Centra verticalmente los elementos */
+    padding: 1px;
+    /* Ejemplo de espaciado interno */
+}
+
+
+.aside-menu header img {
+    display: block;
+    /* Elimina espacios extra debajo de la imagen */
+    max-width: 100%;
+    /* El logo no excederá el ancho de su contenedor (el enlace <a>) */
+    height: auto;
+    max-height: 70px;
+    /* Opcional: Limita la altura máxima del logo */
+}
+
+.nav-link {
+    padding: 10px 0px;
+    font-size: 13px;
+    color: var(--color-icons-sidebar);
+    white-space: nowrap;
+}
+
+.nav-link:hover {
+    color: var(--color-icons-sidebar);
+    background-color: rgb(60, 75, 91);
+}
+
+hr {
+    margin: 12px 0px;
+    color: #fff;
+}
+
+
+/* * Estilos boton toggle */
+
+#toggle-sidebar {
+    position: absolute;
+    font-size: 13px;
+    top: 2px;
+    right: -6px;
+    color: var(--color-icons-sidebar);
+}
+
+
+/* * Estilos menu desplegable de Ajustes */
+
+.drowup {
+    position: absolute;
+    bottom: 15px;
+}
+
+.dropdown-toggle {
+    font-size: 13px;
+    color: var(--color-icons-sidebar);
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.dropdown-toggle::after {
+    margin-left: 1px;
+    transform: rotate(180deg);
+}
+
+.dropdown-item {
+    font-size: 14px;
+}
+
+.dropdown-divider {
+    margin: 2px;
+}
+
+
+/* 
+ * Estilo dinamico (Toggle Sidebar).
+   Estos estilos son aplicados cuando  el evento Click del boton toggle-sidebar es ejecutado.
+   La clase .collapsed se agrega o elimina dependiendo del mismo estado de la clase en el elemento.
+*/
+
+
+#sidebar.collapsed {
+    width: 47px;
+}
+
+#sidebar.collapsed .txt-collapsed {
+    display: none;
+}
+
+#sidebar.collapsed .dropdown-toggle::after {
+    display: none;
+}

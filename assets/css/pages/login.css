@@ -1,0 +1,86 @@
+@import url(../variables.css);
+
+/* Estilos generales */
+body {
+    font-family: "Lato", sans-serif;
+}
+
+/* Sección de imagen */
+.bg-image {
+    background-image: url('../../images/networks_login_Image.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+}
+
+.form-container {
+    background-color: var(--color-fondo);
+}
+
+
+/* formulario */
+.login-form {
+    max-width: 350px;
+    height: 400px;
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+
+}
+
+.password-toggle-icon {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(17%);
+    cursor: pointer;
+    user-select: none;
+
+}
+
+.btn-form {
+    background-color: var(--color-componente);
+    color: #fff;
+}
+
+.btn-form:hover {
+    background-color: rgb(60, 75, 91);
+    color: #fff;
+}
+
+.btn:first-child:active {
+    background-color: rgb(60, 75, 91);
+    color: #fff;
+}
+
+/* Responsividad */
+@media (max-width: 767.98px) {
+    .form-container {
+        background-color: var(--color-componente);
+    }
+
+    .bg-image {
+        display: none !important;
+    }
+
+    .logo-mobile {
+        width: 300px;
+    }
+
+    .login-form {
+        padding: 0px 40px 70px 40px !important;
+        height: auto;
+        font-size: 15px;
+        color: #fff;
+        background-color: var(--color-componente);
+        box-shadow: none;
+    }
+    .btn-form{
+        font-size: 15px;
+        color: rgb(255, 255, 255);
+        background-color: rgba(230, 125, 34, 0.808);
+    }
+
+}

@@ -1,0 +1,93 @@
+@import url(../variables.css);
+
+* {
+    margin: 0;
+    box-sizing: border-box;
+}
+
+/* Estilos generales para móviles */
+body {
+    background-color: var(--color-fondo);
+}
+
+/* Encabezado sticky */
+header {
+    z-index: 1020;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+
+    & .headerModule{
+        background-color: var(--color-componente);
+    }
+
+    & #menu-btn{
+        border: 1px solid var(--color-fondo);
+    }
+
+    & #menu-btn i{
+        color: #fff;
+    }
+}
+
+/*lista de ubicaciones */
+/* #rondines-list {
+    padding: 2.5rem;
+} */
+
+#ubicaciones-list .list-group-item {
+    /* border-radius: 7px; */
+    padding: 1rem 1rem;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease;
+    /* border-left: 4px solid var(--color-componente); */
+    touch-action: manipulation;
+}
+
+#ubicaciones-list .list-group-item:active {
+    transform: scale(0.98);
+    background-color: #f8f9fa;
+}
+
+#ubicaciones-list .list-group-item h5 {
+    font-weight: 600;
+    color: var(--color-componente);
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+}
+
+#ubicaciones-list .list-group-item small {
+    color: #6c7677;
+    font-size: 0.85rem;
+    display: block;
+}
+
+#ubicaciones-list .d-flex {
+    align-items: flex-start;
+}
+
+
+/* Estado vacío */
+#empty-state {
+    margin-top: 2rem;
+    padding: 0 1rem;
+}
+
+#empty-state i {
+    font-size: 2.5rem;
+    color: #ecf0f1;
+    margin-bottom: 1rem;
+}
+
+#empty-state p {
+    font-size: 1rem;
+    color: #95a5a6;
+    line-height: 1.4;
+}
+
+#back-btn{
+    background-color: #ffffffec;
+}
+
+.badge{
+    background-color: var(--color-componente);
+}
