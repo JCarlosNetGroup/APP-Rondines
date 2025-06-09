@@ -61,7 +61,7 @@ include_once '../controller/ValidarSesion.php'
 
             <div class="container-fluid">
 
-                <div class="d-flex justify-content-between align-items-center pt-1 pb-3">
+                <div class="d-flex justify-content-end align-items-center pt-1 pb-3 gap-3">
                     <div class="d-flex align-items-center gap-2">
                         <label for="selectEstadoRondin" class="mb-0">Estado:</label>
                         <select id="selectEstadoRondin" class="form-select form-select-sm">
@@ -74,10 +74,12 @@ include_once '../controller/ValidarSesion.php'
                         <label for="inputBusquedaRondin" class="mb-0">Buscar:</label>
                         <input type="search" id="inputBusquedaRondin" class="inputsearch">
                     </div>
-                    <button class="btn btnModal" data-bs-toggle="modal" data-bs-target="#addRuta">
-                        Crear Nueva Ruta
+
+                    <button class="btn iconModal px-1 py-1" data-bs-toggle="modal" data-bs-target="#addRuta" title="Crear Nueva Ruta">
+                        <i class="bi bi-plus-square-fill"></i>
                     </button>
                 </div>
+
                 <!-- Tabla completa ancho -->
                 <div class="row d-flex justify-content-center mb-5">
                     <div class="col-12">

@@ -91,3 +91,34 @@ header {
 .badge{
     background-color: var(--color-componente);
 }
+
+/* Estilos para iconos de verificación */
+.bi-check-circle-fill {
+    font-size: 1.2rem;
+    margin-left: 0.5rem;
+}
+
+/* Estilos para el escáner QR */
+#qr-scanner-container {
+    position: relative;
+    margin: 0 auto;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Estilos para feedback del escáner */
+#scanner-success {
+    display: none;
+    margin-top: 1rem;
+}
+
+/* Botones del escáner */
+#qrScannerModal .modal-footer {
+    padding: 0.75rem 1rem;
+}
+
+#switch-camera-btn, #torch-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}

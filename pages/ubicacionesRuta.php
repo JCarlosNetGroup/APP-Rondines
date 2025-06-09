@@ -42,8 +42,38 @@
         </main>
     </div>
 
+    <!-- Modal para escanear QR -->
+    <div class="modal fade" id="qrScannerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Escanear QR</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div id="qr-scanner-container" style="width: 100%; height: 300px;"></div>
+                    <p class="mt-3">Enfoca el código QR dentro del área de escaneo</p>
+                    <div id="scanner-error" class="alert alert-danger mt-3 d-none"></div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <div>
+                        <button id="switch-camera-btn" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-camera-reverse"></i> Cambiar cámara
+                        </button>
+                        <button id="torch-btn" class="btn btn-outline-secondary btn-sm ms-2 d-none">
+                            <i class="bi bi-lightbulb"></i> Flash
+                        </button>
+                    </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Librería para escanear QR -->
+    <script src="https://unpkg.com/html5-qrcode@2.0.11/dist/html5-qrcode.min.js"></script>
 
     <script src="../assets/js/pages/ubicacionesRuta.js"></script>
 </body>

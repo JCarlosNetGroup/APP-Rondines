@@ -1,0 +1,205 @@
+@import url(../variables.css);
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--color-fondo);
+    font-size: 1rem;
+}
+
+/* Estilos del header */
+.headerModule {
+    background-color: var(--color-componente);
+}
+
+/* Estilos del contenedor principal */
+.mobile-container {
+    max-width: 100%;
+    padding: 0;
+    background-color: var(--color-fondo);
+    min-height: 100vh;
+}
+
+/* Estilos de las cards */
+.card {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 10px;
+}
+
+.card-title {
+    color: var(--color-componente);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.card-text {
+    font-size: 0.95rem;
+}
+
+/* Estilos de los botones */
+.btn {
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-success {
+    background-color: var(--color-componente);
+    border: none;
+    font-weight: 500;
+    padding: 0.75rem;
+}
+
+.btn-success:hover {
+    background-color: var(--color-hover-buttons);
+}
+
+.btn-info {
+    background-color: #ebed62;
+    border: none;
+    font-weight: 500;
+    padding: 0.75rem;
+}
+
+.btn-info:hover {
+    background-color: #e2e44e;
+}
+
+.btn-outline-secondary {
+    border-color: var(--color-componente);
+    color: var(--color-componente);
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--color-componente);
+    color: white;
+}
+
+/* Estilos de los inputs */
+.form-control {
+    border: 1px solid rgba(114, 114, 114, 0.505);
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.form-control:focus {
+    border-color: rgba(114, 114, 114, 0.308);
+    box-shadow: 1px 1px 2px rgba(40, 55, 71, 0.567),
+                -1px -1px 2px rgba(40, 55, 71, 0.567);
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+/* Estilos del modal */
+.modal-header {
+    color: #fff;
+    background-color: var(--color-componente);
+}
+
+.modal-title {
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+/* Estilos de los radio buttons */
+.form-check-input:checked {
+    background-color: var(--color-componente);
+    border-color: var(--color-componente);
+}
+
+.form-check-label {
+    font-size: 0.9rem;
+}
+
+/* Estilos del botón de la cámara en el modal */
+.btn-outline-primary {
+    border-color: var(--color-componente);
+    color: var(--color-componente);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--color-componente);
+    color: white;
+}
+
+.btn-outline-success {
+    border-color: #198754;
+    color: #198754;
+}
+
+.btn-outline-success:hover {
+    background-color: #198754;
+    color: white;
+}
+
+/* Estilos para las previsualizaciones de fotos */
+#photo-preview, #incidencia-photo-preview {
+    border: 2px solid var(--color-componente);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+    height: auto;
+}
+
+/* Estilos responsive */
+@media (max-width: 576px) {
+    body {
+        font-size: 0.9rem;
+    }
+    
+    .card-title {
+        font-size: 1rem;
+    }
+    
+    .btn {
+        font-size: 0.85rem;
+        padding: 0.5rem;
+    }
+    
+    .form-control, .form-label {
+        font-size: 0.85rem;
+    }
+    
+    .modal-title {
+        font-size: 1.1rem;
+    }
+    
+    #photo-preview, #incidencia-photo-preview {
+        max-height: 150px;
+    }
+}
+
+@media (min-width: 768px) {
+    .card-title {
+        font-size: 1.2rem;
+    }
+    
+    .btn {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+    
+    .form-control, .form-label {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .btn i {
+        margin-right: 0;
+    }
+
+    
+    .input-group-text, .form-control {
+        padding: 0.4rem 0.5rem;
+    }
+}

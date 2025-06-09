@@ -1,3 +1,5 @@
+document.addEventListener('DOMContentLoaded', init);
+
 //* Función de entrada principal, se ejecuta al cargar el DOM
 function init() {
     try {
@@ -11,7 +13,7 @@ function init() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', init);
+
 
 //* Configuración de los controles de búsqueda y filtro
 function setupSearchAndFilter() {
@@ -35,6 +37,8 @@ function setupSearchAndFilter() {
     }
 }
 
+
+
 //* Función debounce para limitar la frecuencia de ejecución
 function debounce(func, wait) {
     let timeout;
@@ -47,6 +51,8 @@ function debounce(func, wait) {
         }, wait);
     };
 }
+
+
 
 //* Función que obtiene los registros del servidor con filtros
 function fetchTableLocations(searchTerm = '', estado = '') {
@@ -124,6 +130,8 @@ function fetchTableLocations(searchTerm = '', estado = '') {
         });
 }
 
+
+
 //* Función para agregar nueva ubicación
 function formAddLocation() {
     const form = document.querySelector("#formAddLocation");
@@ -155,12 +163,10 @@ function formAddLocation() {
 
                 if (!data.success) throw new Error(data.message || 'Error al agregar la ubicación');
 
-                // Prepara datos para generar el QR
+                // Prepara datos para generar el QR (solo se necesita el ID ahora)
                 const qrData = {
-                    id: data.id,
-                    nombre: formData.get('nombre'),
-                    latitud: formData.get('latitud'),
-                    longitud: formData.get('longitud')
+                    id: data.id, // El ID de la ubicación recién creada
+                    // nombre, latitud, longitud ya no son necesarios para el contenido del QR
                 };
 
                 // Genera y guarda el QR
@@ -182,6 +188,8 @@ function formAddLocation() {
         });
     }
 }
+
+
 
 //* Función para editar ubicación
 function formEditLocation() {
@@ -217,7 +225,7 @@ function formEditLocation() {
             const qrPreview = document.getElementById('qrPreview');
             if (qrPath) {
                 const fullQrPath = qrPath.startsWith('http') ? qrPath : 
-                                  `${window.location.origin}${qrPath.startsWith('/') ? '' : '/'}${qrPath}`;
+                                     `${window.location.origin}${qrPath.startsWith('/') ? '' : '/'}${qrPath}`;
                 
                 const img = document.createElement('img');
                 img.src = fullQrPath;
@@ -318,6 +326,8 @@ function formEditLocation() {
     }
 }
 
+
+
 //* Funciones auxiliares
 
 // Muestra una alerta de error con opción para recargar la página
@@ -336,9 +346,17 @@ function showErrorAlert() {
 }
 
 // Genera un código QR a partir de los datos proporcionados
+// **MODIFICACIÓN CLAVE AQUÍ: EL QR AHORA SOLO CONTIENE EL ID DE LA UBICACIÓN**
 async function generateQR(data) {
     return new Promise((resolve, reject) => {
-        QRCode.toDataURL(JSON.stringify(data), {
+        // Se asegura de que 'data' contenga un 'id' válido
+        if (!data || data.id === undefined || data.id === null) {
+            reject(new Error('ID de ubicación no proporcionado para generar QR.'));
+            return;
+        }
+
+        // Se codifica solo el ID de la ubicación en el QR
+        QRCode.toDataURL(data.id.toString(), {
             width: 300,
             margin: 2,
             color: { dark: '#000000', light: '#ffffff' }

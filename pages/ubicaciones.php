@@ -51,7 +51,7 @@ include_once '../controller/ValidarSesion.php';
 
             <!-- Boton "Nuevo Ubicacion y cuadro de busqueda -->
 
-            <div class="d-flex justify-content-between align-items-center pt-1 pb-3">
+            <div class="d-flex justify-content-end align-items-center pt-1 pb-3 gap-3">
                 <div class="d-flex align-items-center gap-2">
                     <label for="selectEstado" class="mb-0">Estado:</label>
                     <select id="selectEstado" class="form-select form-select-sm">
@@ -64,7 +64,10 @@ include_once '../controller/ValidarSesion.php';
                     <label for="inputBusqueda" class="mb-0">Buscar:</label>
                     <input type="search" id="inputBusqueda" class="inputsearch">
                 </div>
-                <button class="btn btnModal" data-bs-toggle="modal" data-bs-target="#modalAddLocation">Nueva Ubicacion</button>
+
+                <button class="btn iconModal px-1 py-0" data-bs-toggle="modal" data-bs-target="#modalAddLocation" title="Agregar Ubicación">
+                    <i class="bi bi-plus-square-fill"></i>
+                </button>
             </div>
 
 
