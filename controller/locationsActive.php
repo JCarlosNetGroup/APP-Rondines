@@ -6,6 +6,7 @@ header('Content-Type: application/json');
 try {
     $sql = "SELECT id_ubicacion as id, nombre, estado 
             FROM ubicacion
+            WHERE estado = 'Activa'
             ORDER BY nombre ASC";
     
     $stmt = $connection->prepare($sql);
@@ -15,20 +16,18 @@ try {
     
     $ubicaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Asegurar que siempre hay un array, aunque esté vacío
     echo json_encode([
         'success' => true,
-        'data' => $ubicaciones ?: []
+        'data' => $ubicaciones ?: [],
+        'message' => $ubicaciones ? 'Ubicaciones activas obtenidas' : 'No hay ubicaciones activas'
     ]);
-    exit; // Terminar ejecución después de enviar JSON
+    exit;
     
 } catch (PDOException $e) {
-    
-    // Enviar respuesta de error en formato JSON
     echo json_encode([
         'success' => false,
-        'message' => "Error al obtener ubicaciones"
+        'message' => "Error al obtener ubicaciones: " . $e->getMessage()
     ]);
     exit;
 }
-exit;
+?>

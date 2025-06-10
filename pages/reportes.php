@@ -50,53 +50,46 @@ include_once '../controller/ValidarSesion.php'
             </header>
 
 
-            <section class="reportes">
-                <!-- Ejemplo de un reporte -->
-                <div class="card reporte-card mb-4">
-                    <div class="row g-0">
-                        <!-- Columna izquierda - Datos del reporte -->
-                        <div class="col-md-4 datos-reporte">
-                            <div class="card-body">
-                                <h5 class="card-title">Reporte #001</h5>
-                                <p class="card-text"><strong>Nombre:</strong> Juan Pérez</p>
-                                <p class="card-text"><strong>Fecha:</strong> 15/05/2023</p>
-                                <p class="card-text"><strong>Ubicación:</strong> Edificio A</p>
-                            </div>
-                        </div>
+            <!-- aqui se declara la tabla de reportes  -->
 
-                        <!-- Columna derecha - Observaciones -->
-                        <div class="col-md-8 observaciones">
-                            <div class="card-body">
-                                <h6 class="card-subtitle mb-2 text-muted">Observaciones</h6>
-                                <p class="card-text">Se encontró una puerta sin cerrar correctamente en el segundo piso. Se verificaron las cámaras de seguridad y no se detectó actividad sospechosa. Se procedió a cerrar y asegurar la puerta.</p>
-                            </div>
-                            <button class="btn btn-sm btn-primary mt-2">Ver detalles</button>
-                        </div>
-                    </div>
+             <!-- Boton "Nuevo Ubicacion y cuadro de busqueda -->
+
+            <div class="d-flex justify-content-end align-items-center pt-1 pb-3 gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <label for="selectEstado" class="mb-0">Estado:</label>
+                    <select id="selectEstado" class="form-select form-select-sm">
+                        <!-- <option value="">Todos</option> -->
+                        <option value="Activa">Activa</option>
+                        <option value="Suspendida">Suspendida</option>
+                        <option value="Bloqueada">Bloqueada</option>
+                    </select>
+
+                    <label for="inputBusqueda" class="mb-0">Buscar:</label>
+                    <input type="search" id="inputBusqueda" class="inputsearch">
                 </div>
 
-                <!-- Otro reporte de ejemplo -->
-                <div class="card reporte-card mb-4">
-                    <div class="row g-0">
-                        <div class="col-md-4 datos-reporte">
-                            <div class="card-body">
-                                <h5 class="card-title">Reporte #002</h5>
-                                <p class="card-text"><strong>Nombre:</strong> María González</p>
-                                <p class="card-text"><strong>Fecha:</strong> 16/05/2023</p>
-                                <p class="card-text"><strong>Ubicación:</strong> Estacionamiento</p>
-                            </div>
-                        </div>
+                <button class="btn iconModal px-1 py-0" data-bs-toggle="modal" data-bs-target="#modalAddLocation" title="Agregar Ubicación">
+                    <i class="bi bi-plus-square-fill"></i>
+                </button>
+            </div>
 
-                        <div class="col-md-8 observaciones">
-                            <div class="card-body">
-                                <h6 class="card-subtitle mb-2 text-muted">Observaciones</h6>
-                                <p class="card-text">Se identificó un vehículo con las luces encendidas por más de 2 horas. Se localizó al dueño (empleado del piso 3) quien fue notificado. No se encontraron daños o intentos de robo.</p>
-                            </div>
-                            <button class="btn btn-sm btn-primary mt-2">Ver detalles</button>
-                        </div>
-                    </div>
+            <div class="row py-4">
+                <div class="col">
+                    <table class="table table-sm table-striped table-hover" id="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Latitud</th>
+                                <th>Longitud</th>
+                                <th>Estado</th>
+                                <th>Editar</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
-            </section>
+            </div>
 
 
             <script src="../assets/js/components/sidebar.js"></script>

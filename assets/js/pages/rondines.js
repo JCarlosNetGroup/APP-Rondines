@@ -255,6 +255,7 @@ const RutasModule = (() => {
 // =============================================
 const AddRutaFormModule = (() => {
     let currentOrder = 1;
+    let selectedUbicaciones = []; // Array para rastrear ubicaciones seleccionadas y su orden
 
     const init = () => {
         const form = document.querySelector("#formAddRuta");
@@ -274,6 +275,7 @@ const AddRutaFormModule = (() => {
         document.getElementById('inicioRuta').value = '08:00';
         document.getElementById('finRuta').value = '17:00';
         currentOrder = 1;
+        selectedUbicaciones = []; // Reiniciar el array al mostrar el modal
         await cargarUbicaciones();
     };
 
@@ -330,14 +332,7 @@ const AddRutaFormModule = (() => {
     };
 
     const getSelectedUbicaciones = () => {
-        const ubicacionesOrdenadas = [];
-        document.querySelectorAll('#ubicaciones-list input[type="checkbox"]:checked').forEach(checkbox => {
-            ubicacionesOrdenadas.push({
-                id: checkbox.value,
-                orden: parseInt(checkbox.nextElementSibling.textContent)
-            });
-        });
-        return ubicacionesOrdenadas.sort((a, b) => a.orden - b.orden);
+        return [...selectedUbicaciones].sort((a, b) => a.orden - b.orden);
     };
 
     const cargarUbicaciones = async () => {
@@ -377,12 +372,21 @@ const AddRutaFormModule = (() => {
 
     const setupCheckboxListeners = () => {
         document.querySelectorAll('.ubicacion-check').forEach(checkbox => {
-            checkbox.addEventListener('change', function () {
+            checkbox.addEventListener('change', function() {
+                const ubicacionId = parseInt(this.value);
                 const ordenSpan = this.nextElementSibling;
+
                 if (this.checked) {
-                    ordenSpan.textContent = currentOrder++;
+                    // Agregar al array de seleccionados con el orden actual
+                    selectedUbicaciones.push({
+                        id: ubicacionId,
+                        orden: currentOrder++
+                    });
+                    ordenSpan.textContent = selectedUbicaciones.find(u => u.id === ubicacionId).orden;
                     ordenSpan.classList.remove('d-none');
                 } else {
+                    // Eliminar del array de seleccionados
+                    selectedUbicaciones = selectedUbicaciones.filter(u => u.id !== ubicacionId);
                     ordenSpan.textContent = '';
                     ordenSpan.classList.add('d-none');
                     reordenarSeleccionados();
@@ -392,11 +396,19 @@ const AddRutaFormModule = (() => {
     };
 
     const reordenarSeleccionados = () => {
-        const checks = document.querySelectorAll('.ubicacion-check:checked');
-        currentOrder = 1;
-        checks.forEach(checkbox => {
-            checkbox.nextElementSibling.textContent = currentOrder++;
+        // Ordenar las ubicaciones por su orden actual
+        selectedUbicaciones.sort((a, b) => a.orden - b.orden);
+
+        // Reasignar órdenes secuenciales manteniendo la posición relativa
+        selectedUbicaciones.forEach((ubicacion, index) => {
+            ubicacion.orden = index + 1;
+            const checkbox = document.querySelector(`.ubicacion-check[value="${ubicacion.id}"]`);
+            if (checkbox) {
+                checkbox.nextElementSibling.textContent = ubicacion.orden;
+            }
         });
+
+        currentOrder = selectedUbicaciones.length + 1;
     };
 
     const showNoUbicacionesMessage = (container, message) => {

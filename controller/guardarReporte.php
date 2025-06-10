@@ -84,6 +84,7 @@ $stmt->execute([$id_ubicacion, $empleado_id, $observacion, $nombre_foto]);
     echo json_encode([
         'success' => true,
         'reporte_id' => $connection->lastInsertId(),
+        'ubicacion_id' => $id_ubicacion,
         'message' => 'Reporte guardado exitosamente',
         'id_rondin' => $id_rondin 
     ]);

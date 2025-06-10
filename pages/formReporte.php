@@ -48,27 +48,28 @@
                     <textarea class="form-control" id="observacion" name="observacion" rows="4" placeholder="Escribe tus observaciones aquí"></textarea>
                 </div>
 
-<!-- Reemplaza el input de foto principal -->
-<div class="mb-3">
-    <label for="foto" class="form-label">Fotografía</label>
-    <div class="text-center">
-        <button type="button" class="btn btn-outline-primary w-100 mb-2" id="start-camera-main">
-            <i class="bi bi-camera"></i> Activar Cámara
-        </button>
-        <video id="video-main" width="100%" autoplay style="display: none;"></video>
-        <button type="button" class="btn btn-outline-success w-100 mb-2" id="take-photo-btn-main" style="display: none;">
-            <i class="bi bi-camera-fill"></i> Tomar Foto
-        </button>
-        <canvas id="canvas-main" style="display: none;"></canvas>
-        <div id="photo-preview-container" class="mt-2">
-            <img id="photo-preview" src="#" alt="Previsualización de la foto" class="img-fluid rounded" style="display: none; max-height: 200px;">
-        </div>
-        <input type="hidden" id="foto" name="foto">
-    </div>
-</div>
+                <!-- Reemplaza el input de foto principal -->
+                <div class="mb-3">
+                    <label for="foto" class="form-label">Fotografía</label>
+                    <div class="text-center">
+                        <button type="button" class="btn btn-outline-primary w-100 mb-2" id="start-camera-main">
+                            <i class="bi bi-camera"></i> Activar Cámara
+                        </button>
+                        <video id="video-main" width="100%" autoplay style="display: none;"></video>
+                        <button type="button" class="btn btn-outline-success w-100 mb-2" id="take-photo-btn-main" style="display: none;">
+                            <i class="bi bi-camera-fill"></i> Tomar Foto
+                        </button>
+                        <canvas id="canvas-main" style="display: none;"></canvas>
+                        <div id="photo-preview-container" class="mt-2">
+                            <img id="photo-preview" src="#" alt="Previsualización de la foto" class="img-fluid rounded" style="display: none; max-height: 200px;">
+                        </div>
+                        <input type="hidden" id="foto" name="foto">
+                    </div>
+                </div>
 
+                <!-- Cambia esta parte del botón de incidencia -->
                 <div class="d-grid gap-2 mb-3">
-                    <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#incidenciaModal">
+                    <button type="button" class="btn btn-info" id="btn-incidencia" data-bs-toggle="modal" data-bs-target="#incidenciaModal" disabled>
                         <i class="bi bi-exclamation-triangle-fill"></i> <span>Reportar Incidencia</span>
                     </button>
                 </div>
@@ -76,6 +77,12 @@
                 <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-success">
                         <i class="bi bi-check-circle-fill"></i> <span>Guardar Reporte</span>
+                    </button>
+                </div>
+
+                <div class="d-grid gap-2 mt-3" id="finalizar-container" style="display: none;">
+                    <button type="button" class="btn btn-primary" id="finalizar-btn" disabled>
+                        <i class="bi bi-box-arrow-left"></i> <span>Finalizar y Regresar</span>
                     </button>
                 </div>
             </form>
@@ -146,4 +153,5 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/js/pages/formReporte.js"></script>
 </body>
+
 </html>
