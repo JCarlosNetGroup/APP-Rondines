@@ -37,8 +37,6 @@ document.addEventListener('DOMContentLoaded', function() {
         qrScannerModal: new bootstrap.Modal(document.getElementById('qrScannerModal')),
         scannerError: document.getElementById('scanner-error'),
         qrScannerContainer: document.getElementById('qr-scanner-container'),
-        switchCameraBtn: document.getElementById('switch-camera-btn'),
-        torchBtn: document.getElementById('torch-btn'),
         modalCloseBtn: document.querySelector('#qrScannerModal .btn-close')
     };
 
@@ -63,9 +61,6 @@ document.addEventListener('DOMContentLoaded', function() {
         DOM.qrScannerModal._element.addEventListener('shown.bs.modal', handleModalShown);
         DOM.qrScannerModal._element.addEventListener('hidden.bs.modal', handleModalHidden);
 
-        // Botones de control del escáner
-        DOM.switchCameraBtn.addEventListener('click', switchCamera);
-        DOM.torchBtn.addEventListener('click', toggleTorch);
     }
 
     function handleLocationClick(event) {
@@ -76,8 +71,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const ubicacion = state.ubicacionesData[index];
         if (!ubicacion) return;
 
-        const isEnabled = index === 0 || 
-                         (index > 0 && state.ubicacionesEscaneadas.includes(state.ubicacionesData[index - 1].id));
+        const isEnabled = index === 0 ||
+                                 (index > 0 && state.ubicacionesEscaneadas.includes(state.ubicacionesData[index - 1].id));
         const isScanned = state.ubicacionesEscaneadas.includes(ubicacion.id);
 
         if (isEnabled && !isScanned) {
@@ -95,7 +90,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 await state.html5QrCode.stop();
                 DOM.qrScannerContainer.innerHTML = '';
                 state.currentCameraId = null;
-                DOM.torchBtn.classList.add('d-none');
             }
         } catch (err) {
             console.error("Error al detener el escáner:", err);
@@ -143,8 +137,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 rawData: ubicacion
             }))
             .filter(ubicacion => (
-                ubicacion.id && 
-                !isNaN(ubicacion.latitud) && 
+                ubicacion.id &&
+                !isNaN(ubicacion.latitud) &&
                 !isNaN(ubicacion.longitud)
             ));
 
@@ -161,13 +155,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         state.ubicacionesData.forEach((ubicacion, index) => {
-            const isEnabled = index === 0 || 
-                            (index > 0 && state.ubicacionesEscaneadas.includes(state.ubicacionesData[index - 1].id));
+            const isEnabled = index === 0 ||
+                                     (index > 0 && state.ubicacionesEscaneadas.includes(state.ubicacionesData[index - 1].id));
             const isScanned = state.ubicacionesEscaneadas.includes(ubicacion.id);
 
             const item = document.createElement('div');
             item.className = `list-group-item list-group-item-action ${!isEnabled ? 'disabled' : ''} ${isScanned ? 'bg-light' : ''}`;
-            
+
             item.innerHTML = `
                 <div class="d-flex w-100 justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
@@ -185,6 +179,40 @@ document.addEventListener('DOMContentLoaded', function() {
 
             DOM.ubicacionesList.appendChild(item);
         });
+
+        // Verificar si todas las ubicaciones están completadas
+        checkAllLocationsCompleted();
+    }
+
+    function checkAllLocationsCompleted() {
+        if (state.ubicacionesData.length === 0) return;
+
+        const allCompleted = state.ubicacionesData.every(ubicacion =>
+            state.ubicacionesEscaneadas.includes(ubicacion.id)
+        );
+
+        if (allCompleted) {
+            // Usar setTimeout para asegurar que la UI se actualice primero
+            setTimeout(() => {
+                Swal.fire({
+                    title: '¡Ruta Concluida!',
+                    text: 'Has completado todas las ubicaciones de esta ruta.',
+                    icon: 'success',
+                    confirmButtonText: 'Aceptar',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Limpiar el estado guardado para este rondín
+                        const rondinId = getRondinId();
+                        if (rondinId) {
+                            localStorage.removeItem(`rondin_${rondinId}_escaneadas`);
+                        }
+                        window.location.href = '../pages/rondinesDia.php';
+                    }
+                });
+            }, 500);
+        }
     }
 
     function getLocationIcon(isEnabled, isScanned) {
@@ -198,11 +226,27 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!rondinId) return;
 
         try {
-            const escaneadas = localStorage.getItem(`rondin_${rondinId}_escaneadas`);
-            state.ubicacionesEscaneadas = escaneadas ? JSON.parse(escaneadas) : [];
-            
-            if (!Array.isArray(state.ubicacionesEscaneadas)) {
+            // Verificar si hay un parámetro de reset en la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const shouldReset = urlParams.get('reset') === 'true';
+
+            if (shouldReset) {
+                localStorage.removeItem(`rondin_${rondinId}_escaneadas`);
                 state.ubicacionesEscaneadas = [];
+                // Remover el parámetro de reset de la URL sin recargar
+                window.history.replaceState({}, document.title, window.location.pathname + `?id_rondin=${rondinId}`);
+            } else {
+                const escaneadas = localStorage.getItem(`rondin_${rondinId}_escaneadas`);
+                state.ubicacionesEscaneadas = escaneadas ? JSON.parse(escaneadas) : [];
+
+                if (!Array.isArray(state.ubicacionesEscaneadas)) {
+                    state.ubicacionesEscaneadas = [];
+                }
+            }
+
+            // Verificar si todas las ubicaciones están completadas al cargar
+            if (state.ubicacionesData.length > 0) {
+                checkAllLocationsCompleted();
             }
         } catch (e) {
             console.error('Error al cargar ubicaciones escaneadas:', e);
@@ -276,8 +320,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const cameras = await Html5Qrcode.getCameras();
         if (cameras.length === 0) throw new Error('No se detectaron cámaras disponibles.');
 
+        // Aquí se sigue priorizando la trasera, o la primera disponible si no hay trasera.
         state.currentCameraId = cameras.find(cam => cam.label.toLowerCase().includes('back'))?.id || cameras[0].id;
-        DOM.switchCameraBtn.classList.toggle('d-none', cameras.length <= 1);
 
         await state.html5QrCode.start(
             state.currentCameraId,
@@ -286,49 +330,6 @@ document.addEventListener('DOMContentLoaded', function() {
             errorMessage => !errorMessage.includes('NotFoundException') && showScannerError(errorMessage)
         );
 
-        setupScannerControls();
-    }
-
-    function setupScannerControls() {
-        if (state.html5QrCode.getRunningTrackCapabilities()?.torch) {
-            DOM.torchBtn.classList.remove('d-none');
-        } else {
-            DOM.torchBtn.classList.add('d-none');
-        }
-    }
-
-    async function switchCamera() {
-        try {
-            const cameras = await Html5Qrcode.getCameras();
-            if (cameras.length <= 1) return;
-
-            const currentIndex = cameras.findIndex(cam => cam.id === state.currentCameraId);
-            const nextIndex = (currentIndex + 1) % cameras.length;
-            state.currentCameraId = cameras[nextIndex].id;
-
-            await stopScannerIfRunning();
-            await initializeScanner();
-        } catch (error) {
-            handleScannerError(error);
-        }
-    }
-
-    async function toggleTorch() {
-        try {
-            const isTorchOn = DOM.torchBtn.classList.contains('active');
-            
-            if (isTorchOn) {
-                await state.html5QrCode.turnOffFlash();
-                DOM.torchBtn.classList.remove('active');
-                DOM.torchBtn.innerHTML = '<i class="bi bi-lightbulb"></i> Flash';
-            } else {
-                await state.html5QrCode.turnOnFlash();
-                DOM.torchBtn.classList.add('active');
-                DOM.torchBtn.innerHTML = '<i class="bi bi-lightbulb-fill"></i> Flash';
-            }
-        } catch (error) {
-            handleScannerError(error);
-        }
     }
 
     // ========== VERIFICACIÓN QR ==========
@@ -360,10 +361,10 @@ document.addEventListener('DOMContentLoaded', function() {
     async function handleSuccessfulScan() {
         saveScannedLocation(state.currentUbicacion.id);
         renderLocations();
-        
+
         await stopScannerIfRunning();
         DOM.qrScannerModal.hide();
-        
+
         redirectToReportForm();
     }
 
@@ -379,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 reject(new Error('Geolocalización no soportada'));
                 return;
             }
-            
+
             navigator.geolocation.getCurrentPosition(
                 position => resolve(position),
                 error => reject(createGeolocationError(error)),
@@ -427,7 +428,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'QR code parse error': 'Problema al leer QR - mantén el código enfocado'
         };
 
-        const friendlyMessage = Object.entries(errorMap).reduce((msg, [key, value]) => 
+        const friendlyMessage = Object.entries(errorMap).reduce((msg, [key, value]) =>
             message.includes(key) ? value : msg, message);
 
         if (!friendlyMessage) return;

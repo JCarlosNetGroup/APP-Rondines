@@ -14,32 +14,26 @@ body {
 header {
     z-index: 1020;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
 
-    & .headerModule{
-        background-color: var(--color-componente);
-    }
+header .headerModule {
+    background-color: var(--color-componente);
+}
 
-    & #menu-btn{
-        border: 1px solid var(--color-fondo);
-    }
+header #menu-btn {
+    border: 1px solid var(--color-fondo);
+}
 
-    & #menu-btn i{
-        color: #fff;
-    }
+header #menu-btn i {
+    color: #fff;
 }
 
 /* lista de rondines */
-/* #rondines-list {
-    padding: 1rem;
-} */
-
 #rondines-list .list-group-item {
-    /* border-radius: 7px; */
     padding: 1.1rem 1rem;
     background-color: #fff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: transform 0.2s ease;
-    /* border-left: 4px solid var(--color-componente); */
     touch-action: manipulation;
 }
 
@@ -62,7 +56,7 @@ header {
 }
 
 #rondines-list .d-flex {
-    align-items: flex-start; /* Alineación superior para móviles */
+    align-items: flex-start;
 }
 
 /* Icono de reloj para horarios */
@@ -88,5 +82,112 @@ header {
     font-size: 1rem;
     color: #95a5a6;
     line-height: 1.4;
+}
+
+/* Estilos para el menú móvil */
+.mobile-menu-container {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 65%;
+    max-width: 300px;
+    height: 100vh;
+    background-color: var(--color-componente);
+    z-index: 1050;
+    transition: left 0.3s ease;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+}
+
+.mobile-menu-container.show {
+    left: 0;
+}
+
+.mobile-menu-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1051;
+}
+
+.menu-items-top {
+    flex: 1;
+}
+
+.menu-items-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.164);
+}
+
+.mobile-menu-item {
+    display: block;
+    padding: 15px 20px;
+    color: white;
+    text-decoration: none;
+    font-size: 1.1rem;
+    transition: background-color 0.2s;
+}
+
+
+.mobile-menu-item i {
+    font-size: 1.2rem;
+    vertical-align: middle;
+}
+
+.logout-item {
+    color: #ff6b6b !important;
+}
+
+.logout-item i {
+    color: inherit;
+}
+
+/* Overlay para el fondo */
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+    display: none;
+    transition: opacity 0.3s ease;
+}
+
+.menu-overlay.show {
+    display: block;
+}
+
+/* Evitar scroll cuando el menú está abierto */
+body.menu-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+}
+
+/* Estilos para la información del usuario */
+.user-info {
+    padding: 20px;
+    color: white;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.164);
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* Ajuste para el contenido del menú */
+.mobile-menu-content.pb-0 {
+    padding-bottom: 0 !important;
+}
+
+/* Ajuste para los items del menú */
+.menu-items-top {
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(100vh - 200px); /* Ajusta según necesidad */
 }
 

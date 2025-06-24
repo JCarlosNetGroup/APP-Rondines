@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         FOTO_INPUT: '#foto',
         PHOTO_PREVIEW: '#photo-preview',
         START_CAMERA_MAIN: '#start-camera-main',
+        START_CAMERA_FRONT: '#start-camera-front',
         VIDEO_MAIN: '#video-main',
         TAKE_PHOTO_BTN_MAIN: '#take-photo-btn-main',
         CANVAS_MAIN: '#canvas-main',
@@ -29,14 +30,16 @@ document.addEventListener('DOMContentLoaded', function() {
         DESCRIPCION_INCIDENCIA: '#descripcion-incidencia',
         INCIDENCIA_PHOTO_PREVIEW: '#incidencia-photo-preview',
         FOTO_INCIDENCIA_INPUT: '#foto-incidencia',
-        START_CAMERA_MODAL: '#start-camera',
-        VIDEO_MODAL: '#video',
+        START_CAMERA_MODAL_BACK: '#start-camera-modal-back',
+        START_CAMERA_MODAL_FRONT: '#start-camera-modal-front',
+        VIDEO_MODAL: '#video-modal',
         TAKE_PHOTO_BTN_MODAL: '#take-photo-btn-modal',
-        CANVAS_MODAL: '#canvas',
-        BTN_INCIDENCIA: '[data-bs-target="#incidenciaModal"]',
+        CANVAS_MODAL: '#canvas-modal',
+        BTN_INCIDENCIA: '#btn-incidencia',
         FINALIZAR_BTN: '#finalizar-btn',
         FINALIZAR_CONTAINER: '#finalizar-container',
-        LOADING_SPINNER: '#loadingSpinner'
+        GUARDAR_REPORTE_BTN: '#guardar-reporte-btn',
+        INCIDENCIA_CONTAINER: '#incidencia-container'
     };
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -69,31 +72,55 @@ document.addEventListener('DOMContentLoaded', function() {
             return new Blob([u8arr], { type: mime });
         },
 
-        showAlert: (message, type = 'error') => {
-            if (type === 'error') {
-                console.error('Error:', message);
-                alert('Error: ' + message);
-            } else {
-                console.log('Éxito:', message);
-                alert('Éxito: ' + message);
-            }
+        showAlert: async (message, type = 'error', title = null) => {
+            const defaultTitles = {
+                error: 'Error',
+                success: 'Éxito',
+                warning: 'Advertencia',
+                info: 'Información'
+            };
+            
+            const iconTypes = {
+                error: 'error',
+                success: 'success',
+                warning: 'warning',
+                info: 'info'
+            };
+            
+            return Swal.fire({
+                title: title || defaultTitles[type] || 'Mensaje',
+                text: message,
+                icon: iconTypes[type] || 'info',
+                confirmButtonText: 'Aceptar',
+                customClass: {
+                    confirmButton: `btn btn-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'primary'}`
+                },
+                buttonsStyling: false
+            });
+        },
+
+        showConfirmDialog: async (options) => {
+    return Swal.fire({
+        title: options.title || '¿Estás seguro?',
+        text: options.text || '',
+        icon: options.icon || 'question',
+        showCancelButton: true,
+        confirmButtonText: options.confirmText || 'Sí, continuar',
+        cancelButtonText: options.cancelText || 'Cancelar',
+        customClass: {
+            popup: 'custom-swal-popup',
+            actions: 'custom-swal-actions',
+            confirmButton: 'btn custom-confirm-button',
+            cancelButton: 'btn btn-secondary ms-1'
+        },
+                buttonsStyling: false,
+                reverseButtons: true
+            });
         },
 
         setLoadingState: (isLoading) => {
             const buttons = document.querySelectorAll('button');
-            buttons.forEach(btn => Utils.setElementDisabled(btn, isLoading));
-            const spinner = Utils.getById('loadingSpinner');
-            if (spinner) {
-                Utils.displayElement(spinner, isLoading);
-            }
-        },
-
-        setElementDisabled: (element, disabled) => {
-            element.disabled = disabled;
-        },
-
-        displayElement: (element, show) => {
-            element.style.display = show ? 'block' : 'none';
+            buttons.forEach(btn => btn.disabled = isLoading);
         }
     };
 
@@ -110,6 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fotoInput: Utils.getById('foto'),
         photoPreview: Utils.getById('photo-preview'),
         startCameraMain: Utils.getById('start-camera-main'),
+        startCameraFront: Utils.getById('start-camera-front'),
         videoMain: Utils.getById('video-main'),
         takePhotoBtnMain: Utils.getById('take-photo-btn-main'),
         canvasMain: Utils.getById('canvas-main'),
@@ -121,28 +149,53 @@ document.addEventListener('DOMContentLoaded', function() {
         descripcionIncidencia: Utils.getById('descripcion-incidencia'),
         incidenciaPhotoPreview: Utils.getById('incidencia-photo-preview'),
         fotoIncidenciaInput: Utils.getById('foto-incidencia'),
-        startCameraModal: Utils.getById('start-camera'),
-        videoModal: Utils.getById('video'),
+        startCameraModalBack: Utils.getById('start-camera-modal-back'),
+        startCameraModalFront: Utils.getById('start-camera-modal-front'),
+        videoModal: Utils.getById('video-modal'),
         takePhotoBtnModal: Utils.getById('take-photo-btn-modal'),
-        canvasModal: Utils.getById('canvas'),
-        btnIncidencia: Utils.querySelector('[data-bs-target="#incidenciaModal"]'),
+        canvasModal: Utils.getById('canvas-modal'),
+        btnIncidencia: Utils.getById('btn-incidencia'),
         finalizarBtn: Utils.getById('finalizar-btn'),
-        finalizarContainer: Utils.getById('finalizar-container')
+        finalizarContainer: Utils.getById('finalizar-container'),
+        guardarReporteBtn: Utils.getById('guardar-reporte-btn'),
+        incidenciaContainer: Utils.getById('incidencia-container')
+    };
+
+    // --- Módulo de Compatibilidad ---
+    const Compatibility = {
+        checkCameraSupport: () => {
+            return new Promise((resolve) => {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    Utils.showAlert("Tu navegador no soporta el acceso a la cámara o esta función no está disponible.");
+                    return resolve(false);
+                }
+                
+                if (navigator.permissions) {
+                    navigator.permissions.query({ name: 'camera' })
+                        .then(permissionStatus => {
+                            if (permissionStatus.state === 'denied') {
+                                Utils.showAlert("El acceso a la cámara ha sido denegado. Por favor, actualiza los permisos en la configuración de tu navegador.");
+                                return resolve(false);
+                            }
+                            resolve(true);
+                        })
+                        .catch(() => resolve(true));
+                } else {
+                    resolve(true);
+                }
+            });
+        }
     };
 
     // --- Módulo de la Cámara ---
     const CameraModule = {
-        initCamera: async (videoElement) => {
+        initCamera: async (videoElement, useFrontCamera = false) => {
             CameraModule.stopCamera();
             const constraints = {
                 video: {
-                    facingMode: 'environment',
-                    width: {
-                        ideal: 1280
-                    },
-                    height: {
-                        ideal: 720
-                    }
+                    facingMode: useFrontCamera ? 'user' : 'environment',
+                    width: { ideal: 1280, max: 1920 },
+                    height: { ideal: 720, max: 1080 }
                 },
                 audio: false
             };
@@ -155,8 +208,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     videoElement.onloadedmetadata = () => resolve();
                 });
             } catch (error) {
-                CameraModule.handleCameraError(error);
-                throw error; // Re-lanza para propagar el error
+                console.warn("Intento inicial fallido, probando constraints más básicas:", error);
+                
+                try {
+                    const basicConstraints = {
+                        video: {
+                            facingMode: useFrontCamera ? 'user' : 'environment'
+                        },
+                        audio: false
+                    };
+                    
+                    const stream = await navigator.mediaDevices.getUserMedia(basicConstraints);
+                    currentStream = stream;
+                    videoElement.srcObject = stream;
+                    return new Promise((resolve) => {
+                        videoElement.onloadedmetadata = () => resolve();
+                    });
+                } catch (finalError) {
+                    CameraModule.handleCameraError(finalError);
+                    throw finalError;
+                }
             }
         },
 
@@ -181,7 +252,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
         handleCameraError: (error) => {
             console.error("Error al acceder a la cámara:", error);
-            Utils.showAlert("No se pudo acceder a la cámara. Asegúrate de conceder los permisos necesarios.");
+            let errorMessage = "No se pudo acceder a la cámara.";
+            
+            if (error.name === 'NotAllowedError') {
+                errorMessage = "Permiso denegado. Por favor, permite el acceso a la cámara en la configuración de tu navegador.";
+            } else if (error.name === 'NotFoundError') {
+                errorMessage = "No se encontró ningún dispositivo de cámara disponible.";
+            } else if (error.name === 'NotReadableError') {
+                errorMessage = "La cámara no se puede leer. Puede estar en uso por otra aplicación.";
+            } else if (error.name === 'OverconstrainedError') {
+                errorMessage = "La configuración solicitada no es compatible con tu dispositivo.";
+            }
+            
+            Utils.showAlert(errorMessage);
         }
     };
 
@@ -202,18 +285,19 @@ document.addEventListener('DOMContentLoaded', function() {
             Elements.fotoIncidenciaInput.value = '';
         },
 
+        updateUIAfterReporteSaved: () => {
+            Elements.guardarReporteBtn.classList.add('completado');
+            Elements.btnIncidencia.classList.add('visible');
+            Elements.finalizarContainer.classList.add('visible');
+            Utils.enable(Elements.btnIncidencia);
+            Utils.enable(Elements.finalizarBtn);
+        },
+
         updateReporteSubmitButton: (isSaved) => {
-            const submitBtn = Elements.reporteForm.querySelector('[type="submit"]');
             if (isSaved) {
-                Utils.disable(submitBtn);
-                submitBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> <span>Reporte Guardado</span>';
-                submitBtn.classList.remove('btn-success');
-                submitBtn.classList.add('btn-secondary');
-            } else {
-                Utils.enable(submitBtn);
-                submitBtn.innerHTML = 'Guardar Reporte'; // O el texto inicial
-                submitBtn.classList.remove('btn-secondary');
-                submitBtn.classList.add('btn-success');
+                Elements.guardarReporteBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> <span>Reporte Guardado</span>';
+                Elements.guardarReporteBtn.classList.remove('btn-success');
+                Elements.guardarReporteBtn.classList.add('btn-secondary');
             }
         }
     };
@@ -234,23 +318,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     ubicacionData = data.ubicacion;
                     UIManager.updateUbicacionUI();
                 } else {
-                    Utils.showAlert('No se encontraron datos para esta ubicación.');
+                    await Utils.showAlert('No se encontraron datos para esta ubicación.', 'error');
                     window.history.back();
                 }
             } catch (error) {
                 console.error('Error cargando datos de ubicación:', error);
-                Utils.showAlert('Error al cargar la información de la ubicación: ' + error.message);
+                await Utils.showAlert('Error al cargar la información de la ubicación: ' + error.message, 'error');
                 window.history.back();
             }
         },
 
         sendReporte: async () => {
             if (!Elements.fotoInput.value) {
-                Utils.showAlert('Debes tomar una fotografía antes de guardar el reporte');
+                await Utils.showAlert('Debes tomar una fotografía antes de guardar el reporte', 'error');
                 return;
             }
             if (!Elements.observacion.value.trim()) {
-                Utils.showAlert('Debes ingresar una descripción antes de guardar el reporte');
+                await Utils.showAlert('Debes ingresar una descripción antes de guardar el reporte', 'error');
                 return;
             }
 
@@ -259,7 +343,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const blob = Utils.dataURLtoBlob(Elements.fotoInput.value);
                 formData.append('foto', blob, 'foto_reporte.jpg');
             } catch (error) {
-                Utils.showAlert('Error al procesar la fotografía: ' + error.message);
+                await Utils.showAlert('Error al procesar la fotografía: ' + error.message, 'error');
                 return;
             }
 
@@ -284,17 +368,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 Elements.reporteForm.dataset.reporteId = data.reporte_id;
                 reporteGuardado = true;
-                Utils.enable(Elements.btnIncidencia);
+                
+                UIManager.updateUIAfterReporteSaved();
                 UIManager.updateReporteSubmitButton(true);
 
-                Utils.show(Elements.finalizarContainer);
-                ValidationModule.validateReportFields();
-
-                Utils.showAlert('¡Reporte guardado exitosamente! Ahora puedes agregar incidencias si es necesario o finalizar.', 'success');
+                await Utils.showAlert('¡Reporte guardado exitosamente! Ahora puedes agregar incidencias si es necesario o finalizar.', 'success');
 
             } catch (error) {
                 console.error('Error al guardar reporte:', error);
-                Utils.showAlert('Error al guardar: ' + error.message);
+                await Utils.showAlert('Error al guardar: ' + error.message, 'error');
             } finally {
                 Utils.setLoadingState(false);
             }
@@ -302,11 +384,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         sendIncidencia: async () => {
             if (!reporteGuardado || !Elements.reporteForm.dataset.reporteId) {
-                Utils.showAlert('Primero debes guardar el reporte antes de agregar una incidencia');
+                await Utils.showAlert('Primero debes guardar el reporte antes de agregar una incidencia', 'error');
                 return;
             }
             if (!Elements.descripcionIncidencia.value.trim()) {
-                Utils.showAlert('Debes ingresar una descripción para la incidencia');
+                await Utils.showAlert('Debes ingresar una descripción para la incidencia', 'error');
                 return;
             }
 
@@ -322,7 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     formData.append('foto_incidencia', blob, 'foto_incidencia.jpg');
                 } catch (error) {
                     console.error('Error al procesar foto de incidencia:', error);
-                    Utils.showAlert('Error al procesar foto de incidencia: ' + error.message);
+                    await Utils.showAlert('Error al procesar foto de incidencia: ' + error.message, 'error');
                     return;
                 }
             }
@@ -343,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
 
                 if (data.success) {
-                    Utils.showAlert('¡Incidencia reportada exitosamente!', 'success');
+                    await Utils.showAlert('¡Incidencia reportada exitosamente!', 'success');
                     UIManager.resetIncidenciaForm();
                     Elements.incidenciaModal.hide();
 
@@ -355,7 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } catch (error) {
                 console.error('Error enviando incidencia:', error);
-                Utils.showAlert('Error al reportar incidencia: ' + error.message);
+                await Utils.showAlert('Error al reportar incidencia: ' + error.message, 'error');
             } finally {
                 Utils.setLoadingState(false);
             }
@@ -364,17 +446,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Módulo de Validación ---
     const ValidationModule = {
-        validateFullReport: () => {
+        validateFullReport: async () => {
             if (!reporteGuardado) {
-                Utils.showAlert('Primero debes guardar el reporte correctamente antes de finalizar');
+                await Utils.showAlert('Primero debes guardar el reporte correctamente antes de finalizar', 'error');
                 return false;
             }
             if (!Elements.observacion.value.trim()) {
-                Utils.showAlert('Debes completar la descripción del reporte antes de finalizar');
+                await Utils.showAlert('Debes completar la descripción del reporte antes de finalizar', 'error');
                 return false;
             }
             if (!Elements.fotoInput.value) {
-                Utils.showAlert('Debes tomar una fotografía del reporte antes de finalizar');
+                await Utils.showAlert('Debes tomar una fotografía del reporte antes de finalizar', 'error');
                 return false;
             }
             return true;
@@ -395,14 +477,35 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Módulo de Manejadores de Eventos ---
     const EventHandlers = {
         setupListeners: () => {
+            // Botón de regresar
             Elements.backBtn.addEventListener('click', () => window.history.back());
 
-            // Configuración de la Cámara Principal
+            // Configuración de la Cámara Principal - Trasera
             Elements.startCameraMain.addEventListener('click', async () => {
+                const hasSupport = await Compatibility.checkCameraSupport();
+                if (!hasSupport) return;
+                
                 try {
-                    await CameraModule.initCamera(Elements.videoMain);
+                    await CameraModule.initCamera(Elements.videoMain, false);
                     Utils.show(Elements.videoMain);
                     Utils.hide(Elements.startCameraMain);
+                    Utils.hide(Elements.startCameraFront);
+                    Utils.show(Elements.takePhotoBtnMain);
+                } catch (error) {
+                    // Manejado dentro de CameraModule.initCamera
+                }
+            });
+
+            // Configuración de la Cámara Principal - Frontal
+            Elements.startCameraFront.addEventListener('click', async () => {
+                const hasSupport = await Compatibility.checkCameraSupport();
+                if (!hasSupport) return;
+                
+                try {
+                    await CameraModule.initCamera(Elements.videoMain, true);
+                    Utils.show(Elements.videoMain);
+                    Utils.hide(Elements.startCameraMain);
+                    Utils.hide(Elements.startCameraFront);
                     Utils.show(Elements.takePhotoBtnMain);
                 } catch (error) {
                     // Manejado dentro de CameraModule.initCamera
@@ -415,15 +518,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 Utils.hide(Elements.videoMain);
                 Utils.hide(Elements.takePhotoBtnMain);
                 Utils.show(Elements.startCameraMain);
+                Utils.show(Elements.startCameraFront);
                 ValidationModule.validateReportFields();
             });
 
-            // Configuración de la Cámara de Incidencia
-            Elements.startCameraModal.addEventListener('click', async () => {
+            // Configuración de la Cámara de Incidencia - Trasera
+            Elements.startCameraModalBack.addEventListener('click', async () => {
+                const hasSupport = await Compatibility.checkCameraSupport();
+                if (!hasSupport) return;
+                
                 try {
-                    await CameraModule.initCamera(Elements.videoModal);
+                    await CameraModule.initCamera(Elements.videoModal, false);
                     Utils.show(Elements.videoModal);
-                    Utils.hide(Elements.startCameraModal);
+                    Utils.hide(Elements.startCameraModalBack);
+                    Utils.hide(Elements.startCameraModalFront);
+                    Utils.show(Elements.takePhotoBtnModal);
+                } catch (error) {
+                    // Manejado dentro de CameraModule.initCamera
+                }
+            });
+
+            // Configuración de la Cámara de Incidencia - Frontal
+            Elements.startCameraModalFront.addEventListener('click', async () => {
+                const hasSupport = await Compatibility.checkCameraSupport();
+                if (!hasSupport) return;
+                
+                try {
+                    await CameraModule.initCamera(Elements.videoModal, true);
+                    Utils.show(Elements.videoModal);
+                    Utils.hide(Elements.startCameraModalBack);
+                    Utils.hide(Elements.startCameraModalFront);
                     Utils.show(Elements.takePhotoBtnModal);
                 } catch (error) {
                     // Manejado dentro de CameraModule.initCamera
@@ -435,36 +559,47 @@ document.addEventListener('DOMContentLoaded', function() {
                 CameraModule.stopCamera();
                 Utils.hide(Elements.videoModal);
                 Utils.hide(Elements.takePhotoBtnModal);
-                Utils.show(Elements.startCameraModal);
+                Utils.show(Elements.startCameraModalBack);
+                Utils.show(Elements.startCameraModalFront);
             });
 
-Elements.incidenciaModal._element.addEventListener('hidden.bs.modal', () => {
-    CameraModule.stopCamera();
-    EventHandlers.resetIncidenciaCameraUI();
-});
+            // Eventos del modal de incidencia
+            Elements.incidenciaModal._element.addEventListener('hidden.bs.modal', () => {
+                CameraModule.stopCamera();
+                EventHandlers.resetIncidenciaCameraUI();
+            });
 
+            Elements.incidenciaModal._element.addEventListener('show.bs.modal', function() {
+                if (reporteGuardado && Elements.reporteForm.dataset.reporteId) {
+                    Elements.incidenciaReporteId.value = Elements.reporteForm.dataset.reporteId;
+                }
+            });
+
+            // Formulario de reporte
             Elements.reporteForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 await DataService.sendReporte();
             });
 
+            // Formulario de incidencia
             Elements.incidenciaForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 await DataService.sendIncidencia();
             });
 
-Elements.incidenciaModal._element.addEventListener('show.bs.modal', function() {
-    if (reporteGuardado && Elements.reporteForm.dataset.reporteId) {
-        Elements.incidenciaReporteId.value = Elements.reporteForm.dataset.reporteId;
-    }
-});
-
-            Elements.finalizarBtn.addEventListener('click', () => {
-                if (!ValidationModule.validateFullReport()) {
+            // Botón de finalizar
+            Elements.finalizarBtn.addEventListener('click', async () => {
+                if (!await ValidationModule.validateFullReport()) {
                     return;
                 }
 
-                if (confirm('¿Estás seguro de que deseas finalizar y regresar a la lista de ubicaciones?')) {
+                const result = await Utils.showConfirmDialog({
+                    title: 'Finalizar reporte',
+                    text: '¿Estás seguro de que deseas finalizar y regresar a la lista de ubicaciones?',
+                    confirmText: 'Si, Finalizar'
+                });
+
+                if (result.isConfirmed) {
                     window.location.href = `ubicacionesRuta.php?id_rondin=${rondinId}`;
                 }
             });
@@ -477,13 +612,19 @@ Elements.incidenciaModal._element.addEventListener('show.bs.modal', function() {
         resetIncidenciaCameraUI: () => {
             Utils.hide(Elements.videoModal);
             Utils.hide(Elements.takePhotoBtnModal);
-            Utils.show(Elements.startCameraModal);
+            Utils.show(Elements.startCameraModalBack);
+            Utils.show(Elements.startCameraModalFront);
         }
     };
 
     // --- Función de Inicialización ---
     function init() {
         EventHandlers.setupListeners();
+
+        Utils.hide(Elements.btnIncidencia);
+        Utils.hide(Elements.finalizarContainer);
+        Utils.disable(Elements.btnIncidencia);
+        Utils.disable(Elements.finalizarBtn);
 
         if (ubicacionId && rondinId) {
             Elements.idUbicacionInput.value = ubicacionId;
@@ -492,14 +633,9 @@ Elements.incidenciaModal._element.addEventListener('show.bs.modal', function() {
             Elements.incidenciaIdRondinInput.value = rondinId;
             DataService.loadUbicacionData(ubicacionId);
         } else {
-            Utils.showAlert('Error: ID de ubicación o rondín no especificado.');
+            Utils.showAlert('Error: ID de ubicación o rondín no especificado.', 'error');
             window.history.back();
         }
-
-        // Deshabilitar botones inicialmente
-        Utils.disable(Elements.btnIncidencia);
-        Utils.disable(Elements.finalizarBtn);
-        Utils.hide(Elements.finalizarContainer);
     }
 
     // Inicializar la aplicación

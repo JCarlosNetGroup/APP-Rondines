@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reporte de Ubicación</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="../assets/css/pages/formReport.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 </head>
@@ -45,45 +46,49 @@
 
                 <div class="mb-3">
                     <label for="observacion" class="form-label">Observaciones</label>
-                    <textarea class="form-control" id="observacion" name="observacion" rows="4" placeholder="Escribe tus observaciones aquí"></textarea>
+                    <textarea class="form-control" id="observacion" name="observacion" rows="5" placeholder="Escribe tus observaciones aquí"></textarea>
                 </div>
 
-                <!-- Reemplaza el input de foto principal -->
                 <div class="mb-3">
                     <label for="foto" class="form-label">Fotografía</label>
                     <div class="text-center">
-                        <button type="button" class="btn btn-outline-primary w-100 mb-2" id="start-camera-main">
-                            <i class="bi bi-camera"></i> Activar Cámara
-                        </button>
+                        <div class="btn-group mb-2 w-100" role="group">
+                            <button type="button" class="btn btn-outline-primary" id="start-camera-main">
+                                <i class="bi bi-camera-fill"></i> Cámara Trasera
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="start-camera-front">
+                                <i class="bi bi-camera-fill"></i> Cámara Frontal
+                            </button>
+                        </div>
                         <video id="video-main" width="100%" autoplay style="display: none;"></video>
                         <button type="button" class="btn btn-outline-success w-100 mb-2" id="take-photo-btn-main" style="display: none;">
                             <i class="bi bi-camera-fill"></i> Tomar Foto
                         </button>
                         <canvas id="canvas-main" style="display: none;"></canvas>
                         <div id="photo-preview-container" class="mt-2">
-                            <img id="photo-preview" src="#" alt="Previsualización de la foto" class="img-fluid rounded" style="display: none; max-height: 200px;">
+                            <img id="photo-preview" src="#" alt="Previsualización de la foto" class="img-fluid rounded" style="display: none; max-height: 200px; width:409px;">
                         </div>
                         <input type="hidden" id="foto" name="foto">
                     </div>
                 </div>
 
-                <!-- Cambia esta parte del botón de incidencia -->
-                <div class="d-grid gap-2 mb-3">
-                    <button type="button" class="btn btn-info" id="btn-incidencia" data-bs-toggle="modal" data-bs-target="#incidenciaModal" disabled>
-                        <i class="bi bi-exclamation-triangle-fill"></i> <span>Reportar Incidencia</span>
-                    </button>
-                </div>
-
                 <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-success">
+                    <button type="submit" class="btn btn-cuadrado" id="guardar-reporte-btn">
                         <i class="bi bi-check-circle-fill"></i> <span>Guardar Reporte</span>
                     </button>
                 </div>
 
-                <div class="d-grid gap-2 mt-3" id="finalizar-container" style="display: none;">
-                    <button type="button" class="btn btn-primary" id="finalizar-btn" disabled>
-                        <i class="bi bi-box-arrow-left"></i> <span>Finalizar y Regresar</span>
-                    </button>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <div class="flex-grow-1" id="incidencia-container">
+                        <button type="button" class="btn btn-cuadrado w-100" id="btn-incidencia" data-bs-toggle="modal" data-bs-target="#incidenciaModal">
+                            <i class="bi bi-exclamation-triangle-fill"></i> <span>Reportar Incidencia</span>
+                        </button>
+                    </div>
+                    <div class="flex-grow-1" id="finalizar-container">
+                        <button type="button" class="btn btn-cuadrado w-100" id="finalizar-btn">
+                            <i class="bi bi-box-arrow-left"></i> <span>Finalizar y Regresar</span>
+                        </button>
+                    </div>
                 </div>
             </form>
         </main>
@@ -122,26 +127,31 @@
                         </div>
                         <div class="mb-3">
                             <label for="descripcion-incidencia" class="form-label">Descripción de la Incidencia</label>
-                            <textarea class="form-control" id="descripcion-incidencia" name="descripcion_incidencia" rows="3" placeholder="Detalla la incidencia" required></textarea>
+                            <textarea class="form-control" id="descripcion-incidencia" name="descripcion_incidencia" rows="4" placeholder="Detalla la incidencia" required></textarea>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Foto de la Incidencia</label>
                             <div class="text-center">
-                                <button type="button" class="btn btn-outline-primary w-100 mb-2" id="start-camera">
-                                    <i class="bi bi-camera"></i> Activar Cámara
-                                </button>
-                                <video id="video" width="100%" autoplay style="display: none;"></video>
+                                <div class="btn-group mb-2 w-100" role="group">
+                                    <button type="button" class="btn btn-outline-primary" id="start-camera-modal-back">
+                                        <i class="bi bi-camera-fill"></i> Trasera
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" id="start-camera-modal-front">
+                                        <i class="bi bi-camera-fill"></i> Frontal
+                                    </button>
+                                </div>
+                                <video id="video-modal" width="100%" autoplay style="display: none;"></video>
                                 <button type="button" class="btn btn-outline-success w-100 mb-2" id="take-photo-btn-modal" style="display: none;">
                                     <i class="bi bi-camera-fill"></i> Tomar Foto
                                 </button>
-                                <canvas id="canvas" style="display: none;"></canvas>
+                                <canvas id="canvas-modal" style="display: none;"></canvas>
                                 <div id="incidencia-photo-preview-container" class="mt-2">
-                                    <img id="incidencia-photo-preview" src="#" alt="Previsualización de la foto de incidencia" class="img-fluid rounded" style="display: none; max-height: 150px;">
+                                    <img id="incidencia-photo-preview" src="#" alt="Previsualización de la foto de incidencia" class="img-fluid rounded" style="display: none; max-height: 200px; width:409px;">
                                 </div>
                                 <input type="hidden" id="foto-incidencia" name="foto_incidencia">
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">
+                        <button type="submit" class="btn btn-modal-incidencia w-100">
                             <i class="bi bi-save"></i> Guardar Incidencia
                         </button>
                     </form>
@@ -150,6 +160,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/js/pages/formReporte.js"></script>
 </body>

@@ -1,31 +1,19 @@
-<?php
-include_once '../controller/ValidarSesion.php';
-?>
-
 <!doctype html>
 <html lang="es">
 
 <head>
     <title>Dashboard</title>
-
     <meta charset="utf-8" />
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
     <!-- Bootstrap CSS -->
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
-        crossorigin="anonymous" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 
     <!-- icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
     <!-- CSS -->
     <link rel="stylesheet" href="../assets/css/components/sidebar.css">
-
     <link rel="stylesheet" href="../assets/css/pages/dashboard.css">
 </head>
 
@@ -36,49 +24,52 @@ include_once '../controller/ValidarSesion.php';
         <!-- componente sidebar -->
         <?php include_once '../components/sidebar.php' ?>
 
-        <main class="flex-grow-1">
+        <main class="flex-grow-1 p-3 p-md-4 p-lg-5"> <!-- Ajuste de padding responsive -->
 
-            <header>
-                <div class="info-section d-flex">
-                    <i class="bi bi-grid-1x2-fill"></i>
-                    <h2>Dashboard</h2>
+            <header class="mb-4">
+                <div class="info-section d-flex align-items-center">
+                    <i class="bi bi-grid-1x2-fill fs-1 fs-md-3"></i> <!-- Tamaño de icono responsive -->
+                    <h2 class="h4 h3-md mb-0 ms-2">Dashboard</h2> <!-- Tamaño de texto responsive -->
                 </div>
 
                 <div class="description-section py-2">
-                    <p>Modulo de Comunicados</p>
+                    <p class="mb-0">Modulo de Comunicados</p>
                 </div>
             </header>
 
             <!-- Boton publicar comunicado -->
-
-            <div class="col-md-9 content-button d-flex justify-content-start pt-1 pb-4">
-                <button class="btn btn btnModal" data-bs-toggle="modal" data-bs-target="#miModal">Publicar Comunicado</button>
+            <div class="content-button d-flex justify-content-start pb-3 pb-md-4">
+                <button class="btn btnModal btn-sm btn-md-normal" data-bs-toggle="modal" data-bs-target="#miModal">
+                    Publicar Comunicado
+                </button>
             </div>
 
             <!-- Sección Comunicado principal y lista de ruta diaria -->
-            <section class="d-flex justify-content-between gap-4">
+            <section class="row g-3 g-md-4"> <!-- Cambio a grid system -->
 
-                <!-- Comunicado principal - Tarjeta más visual -->
-                <article class="col-md-8 comunicado card shadow-sm border-0">
+                <!-- Comunicado principal -->
+                <article class="col-12 col-lg-8 comunicado card shadow-sm border-0">
                     <div class="card-body">
                         <header>
-                            <h5 class="card-title text-primary fw-bold">Título del Comunicado</h5>
+                            <h5 class="card-title text-primary fw-bold h6 h5-md">Título del Comunicado</h5>
                             <span class="badge bg-secondary mb-2">Nuevo</span>
                         </header>
 
                         <div class="contenido-comunicado py-2">
                             <div class="row align-items-center">
-                                <div class="col-md-6">
-                                    <p class="card-text descripcion-comunicado">Breve descripción o resumen del comunicado para dar contexto.</p>
-                                    <div class="d-flex mt-4">
+                                <div class="col-12 col-md-6 order-2 order-md-1">
+                                    <p class="card-text descripcion-comunicado small small-md">
+                                        Breve descripción o resumen del comunicado para dar contexto.
+                                    </p>
+                                    <div class="d-flex mt-3">
                                         <button class="btn btn-outline-primary btn-sm">Leer más</button>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-12 col-md-6 order-1 order-md-2 mb-3 mb-md-0">
                                     <img src="../assets/images/descarga.jpeg"
                                         alt="Imagen relacionada con el comunicado"
-                                        class="img-fluid rounded shadow-sm"
-                                        style="max-height: 200px; width: 100%; object-fit: cover;">
+                                        class="img-fluid rounded shadow-sm w-100"
+                                        style="max-height: 200px; object-fit: cover;">
                                 </div>
                             </div>
                         </div>
@@ -86,16 +77,16 @@ include_once '../controller/ValidarSesion.php';
                         <footer class="d-flex justify-content-between align-items-center pt-3 border-top mt-3">
                             <span class="fechaComunicado text-muted small">Publicado: <span class="fw-semibold">fecha</span></span>
                             <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editarModal">
-                                <i class="bi bi-pencil-square"></i> Editar
+                                <i class="bi bi-pencil-square"></i> <span class="d-none d-md-inline">Editar</span>
                             </button>
                         </footer>
                     </div>
                 </article>
 
-                <!-- Aside más estilizado -->
-                <aside class="col-md-3 listaRutas card shadow-sm border-0 h-100">
+                <!-- Aside de rutas -->
+                <aside class="col-12 col-lg-4 listaRutas card shadow-sm border-0">
                     <div class="card-body">
-                        <h6 class="card-title fw-bold mb-3">Rutas del día</h6>
+                        <h6 class="card-title fw-bold mb-3 h6 h5-md">Rutas del día</h6>
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item d-flex justify-content-between align-items-start border-0 px-0">
                                 <div class="ms-2 me-auto">
@@ -114,29 +105,24 @@ include_once '../controller/ValidarSesion.php';
                         </ul>
                     </div>
                 </aside>
-
             </section>
 
-            <!-- //* Seccion histoial de comunicados -->
+            <!-- Sección histórico de comunicados -->
+            <section class="py-3 py-md-4" id="comunicados-section">
+                <h4 class="h5 h4-md mb-3 mb-md-4 pb-2 border-bottom">Comunicados anteriores</h4>
 
-
-            <section class="py-4" id="comunicados-section">
-                <h4 class="mb-4 pb-2 border-bottom">Comunicados anteriores</h4>
-
-                <div class="row g-4" id="comunicados-container">
+                <div class="row g-3 g-md-4" id="comunicados-container">
                     <!-- Los comunicados se cargarán aquí dinámicamente -->
                 </div>
 
                 <!-- Paginación -->
-                <nav class="mt-4">
+                <nav class="mt-3 mt-md-4">
                     <ul class="pagination justify-content-center" id="pagination-container">
                         <!-- La paginación se generará dinámicamente -->
                     </ul>
                 </nav>
             </section>
-
         </main>
-
     </div>
 
     <!-- //* Modal "Publicar Cominicado" -->

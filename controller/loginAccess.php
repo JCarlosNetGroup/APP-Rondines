@@ -42,8 +42,15 @@ try {
         $_SESSION['nombre_rol'] = $row['rol'];
         $_SESSION['empleado_id'] = $row['id_empleado'];
 
+        // Determinar la página de redirección según el rol
+        $redirectPage = 'pages/mobileDash.php';
+        
+        if ($row['rol'] == 'Administrador' || $row['rol'] == 'Supervisor') {
+            $redirectPage = 'pages/dashboard.php';
+        }
+
         // Respuesta para éxito
-        echo json_encode(['status' => 'success', 'redirect' => 'pages/dashboard.php']);
+        echo json_encode(['status' => 'success', 'redirect' => $redirectPage]);
         exit;
     } else {
         // Respuesta para error

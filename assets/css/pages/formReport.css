@@ -91,7 +91,7 @@ body {
 .form-control:focus {
     border-color: rgba(114, 114, 114, 0.308);
     box-shadow: 1px 1px 2px rgba(40, 55, 71, 0.567),
-                -1px -1px 2px rgba(40, 55, 71, 0.567);
+        -1px -1px 2px rgba(40, 55, 71, 0.567);
 }
 
 .form-label {
@@ -143,7 +143,8 @@ body {
 }
 
 /* Estilos para las previsualizaciones de fotos */
-#photo-preview, #incidencia-photo-preview {
+#photo-preview,
+#incidencia-photo-preview {
     border: 2px solid var(--color-componente);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     max-width: 100%;
@@ -155,25 +156,27 @@ body {
     body {
         font-size: 0.9rem;
     }
-    
+
     .card-title {
         font-size: 1rem;
     }
-    
+
     .btn {
         font-size: 0.85rem;
         padding: 0.5rem;
     }
-    
-    .form-control, .form-label {
+
+    .form-control,
+    .form-label {
         font-size: 0.85rem;
     }
-    
+
     .modal-title {
         font-size: 1.1rem;
     }
-    
-    #photo-preview, #incidencia-photo-preview {
+
+    #photo-preview,
+    #incidencia-photo-preview {
         max-height: 150px;
     }
 }
@@ -182,13 +185,14 @@ body {
     .card-title {
         font-size: 1.2rem;
     }
-    
+
     .btn {
         font-size: 1rem;
         padding: 0.75rem 1rem;
     }
-    
-    .form-control, .form-label {
+
+    .form-control,
+    .form-label {
         font-size: 1rem;
     }
 }
@@ -198,8 +202,150 @@ body {
         margin-right: 0;
     }
 
-    
-    .input-group-text, .form-control {
+    .input-group-text,
+    .form-control {
         padding: 0.4rem 0.5rem;
     }
+}
+
+#start-camera-main {
+    height: 55px;
+    font-weight: 500;
+}
+
+/* Estilos para todos los botones cuadrados */
+.btn-cuadrado {
+    height: 60px;
+    border-radius: 5px !important;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+}
+
+.btn-cuadrado span {
+    margin-left: 5px;
+}
+
+/* Contenedor de botones inferiores */
+.d-flex {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+/* Ajustes específicos para los botones inferiores */
+#btn-incidencia,
+#finalizar-btn {
+    flex: 1;
+    min-width: calc(50% - 5px);
+    height: 60px;
+    margin: 0;
+    display: flex !important;
+}
+
+/* Estilos específicos para cada botón */
+#guardar-reporte-btn {
+    background-color: var(--color-componente);
+    border: none;
+    color: white;
+    width: 100%;
+}
+
+#guardar-reporte-btn:hover {
+    background-color: var(--color-hover-buttons);
+}
+
+.btn-modal-incidencia {
+    height: 60px;
+    background-color: var(--color-componente);
+    color: white;
+}
+
+#btn-incidencia {
+    background-color: #ebed62;
+    border: none;
+    color: #333;
+}
+
+#btn-incidencia:hover {
+    background-color: #e2e44e;
+}
+
+#finalizar-btn {
+    background-color: var(--color-componente);
+    border: none;
+    color: white;
+}
+
+#finalizar-btn:hover {
+    background-color: var(--color-componente);
+}
+
+/* Contenedores de los botones */
+#incidencia-container,
+#finalizar-container {
+    flex: 1;
+    min-width: calc(50% - 5px);
+}
+
+/* Estados de visibilidad */
+#btn-incidencia,
+#finalizar-container {
+    display: none !important;
+}
+
+#btn-incidencia.visible,
+#finalizar-container.visible {
+    display: flex !important;
+}
+
+#guardar-reporte-btn.completado {
+    display: none !important;
+}
+
+/* Ajustes para móviles */
+@media (max-width: 576px) {
+    .d-flex {
+        flex-direction: column;
+    }
+
+    #incidencia-container,
+    #finalizar-container {
+        width: 100%;
+        min-width: 100%;
+    }
+
+    #btn-incidencia,
+    #finalizar-btn {
+        width: 100%;
+    }
+}
+
+/* * Estilos mensajes de SweetAlert  */
+
+.swal2-popup {
+    font-size: clamp(1rem, 1vw, 1.4rem) !important;
+    width: min(80%, 800px) !important;
+}
+
+.swal2-title {
+    font-size: clamp(1.8rem, 3vw, 2.4rem) !important;
+}
+
+.swal2-content {
+    font-size: clamp(0.5rem, 1vw, 1rem) !important;
+}
+
+.custom-swal-actions {
+    gap: 1.5rem !important;
+    padding: 1rem 0 !important;
+}
+
+.custom-confirm-button{
+    background-color: var(--color-componente);
+    color: #fff;
 }

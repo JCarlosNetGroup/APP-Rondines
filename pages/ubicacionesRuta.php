@@ -55,20 +55,15 @@
                     <p class="mt-3">Enfoca el código QR dentro del área de escaneo</p>
                     <div id="scanner-error" class="alert alert-danger mt-3 d-none"></div>
                 </div>
-                <div class="modal-footer d-flex justify-content-between">
-                    <div>
-                        <button id="switch-camera-btn" class="btn btn-outline-primary btn-sm">
-                            <i class="bi bi-camera-reverse"></i> Cambiar cámara
-                        </button>
-                        <button id="torch-btn" class="btn btn-outline-secondary btn-sm ms-2 d-none">
-                            <i class="bi bi-lightbulb"></i> Flash
-                        </button>
-                    </div>
+                <div class="modal-footer d-flex justify-content-end">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- SweetAlert JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
