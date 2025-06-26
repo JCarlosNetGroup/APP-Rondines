@@ -32,6 +32,11 @@ include_once '../controller/ValidarSesion.php'
                 </div>
             </header>
 
+            <button id="btnExportarExcel" class="btn btn-export-excel">
+                <i class="bi bi-file-earmark-excel me-2"></i>
+                <span>Excel</span>
+            </button>
+
             <div class="d-flex justify-content-between align-items-center pt-2 gap-3 flex-wrap">
                 <div class="d-flex align-items-center gap-2">
                     <label for="itemsPerPageSelect" class="mb-0">Mostrar:</label>
@@ -51,8 +56,10 @@ include_once '../controller/ValidarSesion.php'
                         <label for="fechaFin" class="mb-0">Hasta:</label>
                         <input type="date" id="fechaFin" class="form-control form-control-sm">
                     </div>
-                    <button id="btnFiltrar" class="btn btn-sm"><i class="bi bi-search"></i></button>
-                    <button id="btnLimpiar" class="btn btn-sm d-none"><i class="bi bi-calendar-x"></i></button>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btnFiltrar" class="btn btn-sm"><i class="bi bi-search"></i></button>
+                        <button id="btnLimpiar" class="btn btn-sm d-none"><i class="bi bi-calendar-x"></i></button>
+                    </div>
                 </div>
 
                 <div class="d-flex align-items-center gap-2">
@@ -191,10 +198,15 @@ include_once '../controller/ValidarSesion.php'
 
     <script src="../assets/js/components/sidebar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script src="../assets/js/pages/reportes.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
         integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
         crossorigin="anonymous"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
         integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
         crossorigin="anonymous"></script>

@@ -20,7 +20,7 @@
                         <li>
                             <a class="nav-link" href="../pages/dashboard.php">
                                 <i class="bi bi-grid-1x2-fill px-2"></i>
-                                <span class="txt-collapsed">Dashboard</span>
+                                <span class="txt-collapsed">Comunicados</span>
                             </a>
                         </li>
 

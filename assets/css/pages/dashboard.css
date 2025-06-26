@@ -71,14 +71,14 @@ main{
 
  /** Boton Publicar Comunicado*/
 
- .btnModal{
-  background-color: var(--color-componente);
-  color: #fff;
+.iconModal {
+  font-size: 1.7rem;
+  color: var(--color-componente);
+  
 }
 
-.btnModal:hover{
-  background-color: var(--color-hover-buttons);
-  color: #fff;
+.iconModal:hover {
+  color: var(--color-hover-buttons);
 }
 
 .btn:first-child:active{

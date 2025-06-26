@@ -22,6 +22,7 @@ function init() {
         setupModalDetails();
         setupDateFilters();
         setupItemsPerPageChange();
+        setupExcelExport();
     } catch (error) {
         console.error('Error en inicialización:', error);
         showErrorAlert();
@@ -547,6 +548,123 @@ function debounce(func, wait) {
             func.apply(context, args);
         }, wait);
     };
+}
+
+//* Configura el botón de exportación a Excel
+function setupExcelExport() {
+    const btnExportarExcel = document.getElementById('btnExportarExcel');
+    
+    btnExportarExcel.addEventListener('click', async function() {
+        try {
+            // Mostrar loading
+            const loadingSwal = Swal.fire({
+                title: 'Preparando archivo',
+                html: 'Por favor espera mientras se generan los datos...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Obtener todos los datos con los filtros actuales
+            const data = await fetchAllDataForExport();
+            
+            if (!data || data.length === 0) {
+                await Swal.fire({
+                    icon: 'warning',
+                    title: 'Sin datos',
+                    text: 'No hay datos para exportar con los filtros actuales',
+                    confirmButtonColor: '#3085d6'
+                });
+                return;
+            }
+
+            // Crear libro de Excel
+            const wb = XLSX.utils.book_new();
+            
+            // Preparar los datos para la hoja de cálculo
+            const excelData = data.map(item => ({
+                'ID': item.id_reporte,
+                'Rondín': item.Rondin,
+                'Guardia': item.Guardia,
+                'Ubicación': item.Ubicacion,
+                'Orden': item.Orden,
+                'Observación': item.observacion || 'Sin observación',
+                'Fecha': new Date(item.fecha).toLocaleString(),
+                'Incidencias': item.Incidencia
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            
+            // Ajustar el ancho de las columnas
+            const wscols = [
+                {wch: 8},  // ID
+                {wch: 20}, // Rondín
+                {wch: 25}, // Guardia
+                {wch: 25}, // Ubicación
+                {wch: 8},  // Orden
+                {wch: 40}, // Observación
+                {wch: 20}, // Fecha
+                {wch: 12}  // Incidencias
+            ];
+            ws['!cols'] = wscols;
+            
+            XLSX.utils.book_append_sheet(wb, ws, "Reportes");
+
+            // Generar nombre de archivo con fecha y filtros
+            let fileName = 'Reportes_';
+            
+            if (currentFilters.fechaInicio || currentFilters.fechaFin) {
+                fileName += `_${currentFilters.fechaInicio || 'inicio'}_a_${currentFilters.fechaFin || 'hoy'}`;
+            }
+            
+            if (currentFilters.search) {
+                fileName += `_busqueda_${currentFilters.search.substring(0, 10)}`;
+            }
+            
+            fileName += `_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+            // Cerrar loading
+            await loadingSwal.close();
+            
+            // Exportar el archivo
+            XLSX.writeFile(wb, fileName);
+            
+        } catch (error) {
+            console.error('Error al exportar a Excel:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error al generar el archivo Excel',
+                confirmButtonColor: '#d33'
+            });
+        }
+    });
+}
+
+//* Obtiene todos los datos para exportar (con los filtros aplicados)
+async function fetchAllDataForExport() {
+    let url = `../controller/tableReports.php`;
+    const params = new URLSearchParams();
+
+    if (currentFilters.search) params.append('search', currentFilters.search);
+    if (currentFilters.fechaInicio) params.append('fecha_inicio', currentFilters.fechaInicio);
+    if (currentFilters.fechaFin) params.append('fecha_fin', currentFilters.fechaFin);
+    
+    // Forzar a obtener todos los registros sin paginación
+    params.append('page', 1);
+    params.append('itemsPerPage', 1000000); // Un número muy grande para obtener todos
+
+    url += `?${params.toString()}`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (!data.success) {
+        throw new Error(data.message || 'Error al obtener datos para exportar');
+    }
+    
+    return data.data || [];
 }
 
 //* Muestra una alerta de error con opción para recargar la página

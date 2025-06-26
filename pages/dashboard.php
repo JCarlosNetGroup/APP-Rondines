@@ -2,7 +2,7 @@
 <html lang="es">
 
 <head>
-    <title>Dashboard</title>
+    <title>Comunicados</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
@@ -24,28 +24,28 @@
         <!-- componente sidebar -->
         <?php include_once '../components/sidebar.php' ?>
 
-        <main class="flex-grow-1 p-3 p-md-4 p-lg-5"> <!-- Ajuste de padding responsive -->
+        <main class="flex-grow-1">
 
-            <header class="mb-4">
-                <div class="info-section d-flex align-items-center">
-                    <i class="bi bi-grid-1x2-fill fs-1 fs-md-3"></i> <!-- Tamaño de icono responsive -->
-                    <h2 class="h4 h3-md mb-0 ms-2">Dashboard</h2> <!-- Tamaño de texto responsive -->
+            <header>
+                <div class="info-section d-flex pt-1 pb-2">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <h2 class="pb-1">Comunicados</h2>
                 </div>
 
-                <div class="description-section py-2">
-                    <p class="mb-0">Modulo de Comunicados</p>
+                <div class="description-section pb-4">
+                    <p class="fw-semibold">Modulo de Comunicados: Gestiona y comparte Información con tu equipo de segidad</p>
                 </div>
             </header>
 
             <!-- Boton publicar comunicado -->
-            <div class="content-button d-flex justify-content-start pb-3 pb-md-4">
-                <button class="btn btnModal btn-sm btn-md-normal" data-bs-toggle="modal" data-bs-target="#miModal">
-                    Publicar Comunicado
+            <div class="content-button d-flex justify-content-end pb-3 pb-md-4">
+                <button class="btn iconModal px-1 py-0" data-bs-toggle="modal" data-bs-target="#miModal">
+                    <i class="bi bi-plus-square-fill"></i>
                 </button>
             </div>
 
             <!-- Sección Comunicado principal y lista de ruta diaria -->
-            <section class="row g-3 g-md-4"> <!-- Cambio a grid system -->
+            <section class="row g-3 g-md-4">
 
                 <!-- Comunicado principal -->
                 <article class="col-12 col-lg-8 comunicado card shadow-sm border-0">
