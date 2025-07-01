@@ -1,21 +1,21 @@
 @import url(../variables.css);
 
-*{
+* {
     margin: 0;
     box-sizing: border-box;
 }
 
-.content-main{
+.content-main {
     width: 100%;
     background-color: var(--color-fondo);
 }
 
-main{
+main {
     padding: 25px 100px;
 }
 
 /* ------------------------------
-* Header del contenido principal 
+* Header del contenido principal
 -------------------------------*/
 
 .info-section {
@@ -23,87 +23,204 @@ main{
     align-items: end;
     color: var(--color-componente);
     gap: 15px;
-  }
+}
 
 .info-section i {
+    font-size: 60px; /* Adjusted to 60px based on the example */
+}
 
-    font-size: 60px;
-  }
-  
-  .info-section h2 {
-    margin-bottom: 5px;
-  }
+.info-section h2 {
+    margin-bottom: 5px; /* Adjusted margin-bottom based on the example */
+    padding-bottom: 0; /* Remove padding-bottom to match the original style */
+}
 
-  .description-section{
+.description-section {
     font-size: 17px;
     font-weight: 500;
-  }
+}
 
+/* ----------------------------
+* Seccion Comunicado Principal
+-----------------------------*/
 
-  /* ----------------------------
-  * Seccion Comunicado Principal 
-  -----------------------------*/
-
-  .comunicado{
+.comunicado {
     padding: 10px 20px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-  }
+}
 
-  .contenido-comunicado {
-    
-    max-width: 900px; 
-    max-height: 300px; 
+.contenido-comunicado {
+    max-width: 900px;
+    max-height: 300px;
     overflow: hidden;
-  }
-  
-  .contenido-comunicado img {
+}
+
+.contenido-comunicado img {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
-  }
-
-
+}
 
 /* ---------
-* Botones 
+* Botones
 ----------*/
 
- /** Boton Publicar Comunicado*/
+/** Boton Publicar Comunicado*/
 
 .iconModal {
-  font-size: 1.7rem;
-  color: var(--color-componente);
-  
+    font-size: 1.7rem;
+    color: var(--color-componente);
 }
 
 .iconModal:hover {
-  color: var(--color-hover-buttons);
+    color: var(--color-hover-buttons);
 }
 
-.btn:first-child:active{
-  background-color: var(--color-hover-buttons);
-  color: #fff;
+.btn:first-child:active {
+    background-color: var(--color-hover-buttons);
+    color: #fff;
 }
 
-  
-/** Boton Editar*/
-  
-.btn-check:checked+.btn, .btn.active, .btn.show, .btn:first-child:active, :not(.btn-check)+.btn:active{
-  background-color: var(--color-hover-buttons);
-  color: #fff;
+/** Boton Publicar/Guardar en Modales */
+.btnModal {
+    font-weight: 500;
+    background-color: var(--color-componente);
+    color: #fff;
 }
 
-
+.btnModal:hover {
+    background-color: var(--color-hover-buttons);
+    color: #fff;
+}
 
 /* ---------
-* Modales 
+* Modales
 ----------*/
 
 /** Modal Publicar Comunicado */
 
-.modal-header{
-  color:#fff;
-  background-color: var(--color-componente);
+.modal-header {
+    color: #fff;
+    background-color: var(--color-componente);
 }
-  
+
+/* Estilos para el botón de cerrar en modales */
+.btn-close-white {
+    filter: brightness(0) invert(1);
+}
+
+/* Estilos para los títulos dentro de los cards en los modales */
+.modal-body .card-header {
+    background-color: var(--color-light-background); 
+}
+
+.modal-body .card-header .card-title {
+    color: var(--color-text-dark); 
+}
+
+
+/* Estilos para la tabla de comunicados anteriores (si aplica) */
+#comunicados-section h4 {
+    color: var(--color-componente);
+}
+
+/* Estilos para los comunicados individuales en la sección "Comunicados anteriores" */
+#comunicados-container .card {
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 0.375rem;
+}
+
+#comunicados-container .card-header {
+    background-color: var(--color-light-background);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+#comunicados-container .card-title {
+    color: var(--color-componente);
+}
+
+#comunicados-container .card-text {
+    color: var(--color-text-dark);
+}
+
+
+/** Estilos para la paginación */
+.pagination .page-item .page-link {
+    color: var(--color-componente);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--color-componente);
+    border-color: var(--color-componente);
+    color: #fff;
+}
+
+.pagination .page-item .page-link:hover {
+    background-color: var(--color-hover-buttons);
+    border-color: var(--color-hover-buttons);
+    color: #fff;
+}
+
+/* Estilos específicos para los badges de prioridad y estado en el modal de ver comunicado */
+#viewComunicadoPrioridad.badge {
+    text-transform: capitalize;
+}
+
+#viewComunicadoEstado.badge {
+    text-transform: capitalize;
+}
+
+/* Botón "Editar" dentro del modal "Ver Comunicado" */
+#btnEditarDesdeVerModal {
+    background-color: var(--color-componente);
+    color: #fff;
+}
+
+#btnEditarDesdeVerModal:hover {
+    background-color: var(--color-hover-buttons);
+    color: #fff;
+}
+
+/* Transiciones para la paginación */
+.pagination {
+    transition: all 0.3s ease;
+}
+
+.pagination .page-item {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.pagination .page-item:not(.active):hover {
+    transform: translateY(-2px);
+}
+
+.pagination .page-item.active .page-link {
+    transform: scale(1.1);
+    transition: all 0.3s ease;
+}
+
+/* Transición para los elementos de los comunicados */
+#comunicados-container .col-12 {
+    transition: all 0.5s ease;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+#comunicados-container .col-12.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Tus colores personalizados */
+.bg-prioridad-medio {
+    background-color: var(--color-componente);
+}
+.bg-prioridad-importante {
+    background-color: rgb(187, 7, 7);
+}
+.bg-estado-vigente {
+    background-color: #127032; 
+}
+/* .bg-estado-expirado {
+    background-color: #6e6c6a; 
+} */

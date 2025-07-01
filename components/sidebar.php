@@ -70,13 +70,7 @@
 
                         <hr class="dropdown-divider">
 
-                        <li><a class="dropdown-item" href="#">New project...</a></li>
-                        <li><a class="dropdown-item" href="#">Settings</a></li>
-                        <li><a class="dropdown-item" href="#">Profile</a></li>
-
-                        <hr class="dropdown-divider">
-
-                        <li><a class="dropdown-item" href="../controller/logout.php">Sign out</a></li>
+                        <li><a class="dropdown-item" href="../controller/logout.php">Cerrar Sesión</a></li>
                     </ul>
                         </li>
 

@@ -21,7 +21,7 @@ const API_ENDPOINTS = {
 // =============================================
 function debounce(func, wait) {
     let timeout;
-    return function() {
+    return function () {
         const context = this;
         const args = arguments;
         clearTimeout(timeout);
@@ -42,11 +42,8 @@ const MapModule = (() => {
     const init = () => {
         map = L.map('map').setView(MAP_CONFIG.center, MAP_CONFIG.zoom);
 
-        L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.{ext}', {
-            minZoom: 0,
-            maxZoom: 18,
-            attribution: '&copy; CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | &copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            ext: 'jpg'
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '&copy; Esri'
         }).addTo(map);
     };
 
@@ -67,7 +64,7 @@ const MapModule = (() => {
 
         // Crear polilínea
         const points = ubicacionesOrdenadas.map(u => [u.latitud, u.longitud]);
-        currentRoute = L.polyline(points, { color: '#3388ff'}).addTo(map);
+        currentRoute = L.polyline(points, { color: '#3388ff' }).addTo(map);
 
         // Añadir marcadores
         ubicacionesOrdenadas.forEach((ubicacion, index) => {
@@ -372,7 +369,7 @@ const AddRutaFormModule = (() => {
 
     const setupCheckboxListeners = () => {
         document.querySelectorAll('.ubicacion-check').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
+            checkbox.addEventListener('change', function () {
                 const ubicacionId = parseInt(this.value);
                 const ordenSpan = this.nextElementSibling;
 
@@ -678,10 +675,10 @@ const EditRutaFormModule = (() => {
 const setupRondinesSearchAndFilter = () => {
     const inputBusqueda = document.getElementById('inputBusquedaRondin');
     const selectEstado = document.getElementById('selectEstadoRondin');
-    
+
     // Primera carga (no envía parámetro estado)
     RutasModule.fetchTableRutas('', undefined);
-    
+
     // Evento para el input de búsqueda con debounce
     if (inputBusqueda) {
         inputBusqueda.addEventListener('input', debounce(function (e) {
@@ -689,7 +686,7 @@ const setupRondinesSearchAndFilter = () => {
             RutasModule.fetchTableRutas(e.target.value, estado);
         }, 300));
     }
-    
+
     // Evento para el select de estado
     if (selectEstado) {
         selectEstado.addEventListener('change', function (e) {

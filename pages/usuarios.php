@@ -24,9 +24,11 @@ include_once '../controller/ValidarSesion.php'
     <!-- icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
+    <!-- SweetAlert CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
     <!-- CSS -->
     <link rel="stylesheet" href="../assets/css/components/sidebar.css">
-
     <link rel="stylesheet" href="../assets/css/pages/usuarios.css">
 </head>
 
@@ -132,7 +134,7 @@ include_once '../controller/ValidarSesion.php'
                                     <label for="status" class="form-label">Estado</label>
                                     <select class="form-select" id="status" name="estado" required>
                                         <option value="">Selecciona el Estado</option>
-                                        <option value="activo">Activo</option>
+                                        <option value="activo" selected>Activo</option>
                                         <option value="bloqueado">Bloqueado</option>
                                         <option value="Inhabilitado">Inhabilitado</option>
                                     </select>
@@ -236,11 +238,8 @@ include_once '../controller/ValidarSesion.php'
                                 <th>ID</th>
                                 <th>Nombre</th>
                                 <th>Apellido</th>
-                                <!-- <th>Puesto</th> -->
                                 <th>Telefono</th>
                                 <th>Rol</th>
-                                <!-- <th>Usuario</th>
-                                <th>Contraseña</th> -->
                                 <th>Estado</th>
                                 <th>Editar</th>
                             </tr>
@@ -250,12 +249,8 @@ include_once '../controller/ValidarSesion.php'
                 </div>
             </div>
 
-
-
             <!-- script-componente-sidebar -->
             <script src="../assets/js/components/sidebar.js"></script>
-
-            <script src="../assets/js/pages/usuarios.js"></script>
 
             <!-- Bootstrap JavaScript Libraries -->
             <script
@@ -267,6 +262,12 @@ include_once '../controller/ValidarSesion.php'
                 src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
                 integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
                 crossorigin="anonymous"></script>
+
+            <!-- SweetAlert JS -->
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+            <!-- Script de usuarios -->
+            <script src="../assets/js/pages/usuarios.js"></script>
 
         </main>
     </div>

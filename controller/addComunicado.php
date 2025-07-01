@@ -5,8 +5,9 @@ require_once '../includes/dbConnection.php';
 header('Content-Type: application/json');
 
 try {
-    if (empty($_POST['titulo']) || empty($_POST['descripcion'])) {
-        throw new Exception('Título y descripción son requeridos');
+    // Validar campos requeridos
+    if (empty($_POST['titulo']) || empty($_POST['contenido']) || empty($_POST['fecha_expiracion'])) {
+        throw new Exception('Todos los campos son requeridos');
     }
 
     // Verificar empleado_id en sesión
@@ -14,63 +15,47 @@ try {
         throw new Exception('No autorizado');
     }
 
+    // --- CAMBIO AQUÍ ---
+    // Validar fecha de expiración
+    $fechaExpiracion = new DateTime($_POST['fecha_expiracion'] . ' 23:59:59'); // Establecer al final del día
+    $fechaActual = new DateTime();
+    $fechaActual->setTime(0, 0, 0); // Establecer 'hoy' al inicio del día (00:00:00)
+    
+    if ($fechaExpiracion < $fechaActual) {
+        throw new Exception('La fecha de expiración no puede ser anterior a la fecha actual');
+    }
+    // --- FIN CAMBIO ---
+
     $connection->beginTransaction();
 
-    $nombreArchivo = null;
-    $rutaArchivo = null;
-    
-    if (isset($_FILES['archivo']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
-        $directorioUploads = '../assets/dataComunicados/';
-
-
-        $extensionesPermitidas = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx', 'xls', 'xlsx'];
-        $nombreArchivo = $_FILES['archivo']['name'];
-        $extension = strtolower(pathinfo($nombreArchivo, PATHINFO_EXTENSION));
-        
-        if (!in_array($extension, $extensionesPermitidas)) {
-            throw new Exception('Tipo de archivo no permitido');
-        }
-
-        $nombreUnico = uniqid() . '_' . time() . '.' . $extension;
-        $rutaArchivo = $directorioUploads . $nombreUnico;
-
-        if (!move_uploaded_file($_FILES['archivo']['tmp_name'], $rutaArchivo)) {
-            throw new Exception('Error al subir el archivo');
-        }
-    }
-
-    // Usar empleado_id en la consulta
+    // Insertar en la base de datos con todos los campos
     $sql = "INSERT INTO comunicados 
-            (titulo, descripcion, nombre_archivo, ruta_archivo, empleado_id, fecha) 
-            VALUES (:titulo, :descripcion, :nombre_archivo, :ruta_archivo, :empleado_id, NOW())";
+             (titulo, contenido, empleado_id, 
+              fecha_publicacion, fecha_expiracion, prioridad, fecha_actualizacion) 
+             VALUES 
+             (:titulo, :contenido, :empleado_id, 
+              NOW(), :fecha_expiracion, :prioridad, NOW())";
     
     $stmt = $connection->prepare($sql);
     $stmt->execute([
         'titulo' => $_POST['titulo'],
-        'descripcion' => $_POST['descripcion'],
-        'nombre_archivo' => $nombreArchivo,
-        'ruta_archivo' => $rutaArchivo,
-        'empleado_id' => $_SESSION['empleado_id']
+        'contenido' => $_POST['contenido'],
+        'empleado_id' => $_SESSION['empleado_id'],
+        'fecha_expiracion' => $_POST['fecha_expiracion'],
+        'prioridad' => $_POST['prioridad'] ?? 'Medio'
     ]);
 
     $connection->commit();
 
-// Después del commit
-$lastId = $connection->lastInsertId();
-
-echo json_encode([
-    'success' => true,
-    'message' => 'Comunicado publicado correctamente',
-    'newId' => $lastId
-]);
+    echo json_encode([
+        'success' => true,
+        'message' => 'Comunicado publicado correctamente',
+        'newId' => $connection->lastInsertId()
+    ]);
 
 } catch (Exception $e) {
     if ($connection->inTransaction()) {
         $connection->rollBack();
-    }
-    
-    if (isset($rutaArchivo)) {
-        @unlink($rutaArchivo);
     }
     
     echo json_encode([

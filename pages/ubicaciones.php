@@ -76,8 +76,8 @@ include_once '../controller/ValidarSesion.php';
             <div class="modal fade" id="modalAddLocation" tabindex="-1" aria-labelledby="modalAddLocationLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalAddLocationLabel">
+                        <div class="modal-header position-relative">
+                            <h5 class="modal-title w-100 text-center" id="modalAddLocationLabel">
                                 <i class="bi bi-geo-alt me-2"></i>Nueva Ubicación
                             </h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -125,6 +125,9 @@ include_once '../controller/ValidarSesion.php';
                                             </div>
                                         </div>
                                     </div>
+                                    <a href="https://www.google.com/maps/@20.5984977,-100.4600543,492m" target="_blank" class="btn btn-sm linkMaps fw-semibold">
+                                        <i class="bi bi-geo-alt"></i> Ver Networks en Google Maps
+                                    </a>
                                 </div>
 
                                 <!-- Campo de Estado -->
@@ -153,7 +156,7 @@ include_once '../controller/ValidarSesion.php';
             </div>
 
 
-            <!-- //*Declaracion de Modal Editar Ubicacion -->
+            <!-- //* Declaracion de Modal Editar Ubicacion -->
 
             <div class="modal fade" id="editLocation" tabindex="-1" aria-labelledby="editLocationLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
@@ -233,6 +236,9 @@ include_once '../controller/ValidarSesion.php';
                                                     </div>
                                                 </div>
                                             </div>
+                                            <a target="_blank" class="btn btn-sm linkMaps fw-semibold" id="viewLocationLink">
+                                                <i class="bi bi-geo-alt"></i> Ver Ubicación
+                                            </a>
                                         </div>
 
                                         <!-- card de QR -->

@@ -1,5 +1,4 @@
 <?php
-// Incluir el archivo de conexión
 require_once '../includes/dbConnection.php';
 
 header('Content-Type: application/json');
@@ -10,10 +9,25 @@ try {
         throw new Exception('Faltan campos requeridos en la solicitud');
     }
 
-    // Obtener la conexión PDO de tu archivo database.php
-    $connection = new PDO("mysql:host=localhost;dbname=centinelapp", "root", "");
-    $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Verificar si el nombre de ruta ya existe
+    $stmtCheck = $connection->prepare("SELECT COUNT(*) FROM rondin WHERE nombre = :nombre");
+    $stmtCheck->execute([':nombre' => $_POST['nombre']]);
+    $exists = $stmtCheck->fetchColumn();
+
+    if ($exists > 0) {
+        throw new Exception('Ya existe una ruta con este nombre');
+    }
+
+    // Validar que haya al menos una ubicación
+    $ubicaciones = json_decode($_POST['ubicaciones'], true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        throw new Exception('Error al decodificar las ubicaciones: ' . json_last_error_msg());
+    }
     
+    if (count($ubicaciones) === 0) {
+        throw new Exception('Debe seleccionar al menos una ubicación');
+    }
+
     // Iniciar transacción
     $connection->beginTransaction();
     
@@ -29,12 +43,6 @@ try {
     $rondinId = $connection->lastInsertId();
     
     // 2. Procesar ubicaciones
-    $ubicaciones = json_decode($_POST['ubicaciones'], true);
-    
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('Error al decodificar las ubicaciones: ' . json_last_error_msg());
-    }
-    
     $stmt = $connection->prepare("INSERT INTO rutas_rondin (rondin_id, ubicacion_id, orden) VALUES (:rondin_id, :ubicacion_id, :orden)");
     
     foreach ($ubicaciones as $ubicacion) {
@@ -58,14 +66,12 @@ try {
     ]);
     
 } catch (PDOException $e) {
-    // Revertir transacción en caso de error
     if (isset($connection) && $connection->inTransaction()) {
         $connection->rollBack();
     }
     echo json_encode([
         'success' => false, 
-        'message' => 'Error en la base de datos: ' . $e->getMessage(),
-        'error_details' => $e->getTraceAsString()
+        'message' => 'Error en la base de datos: ' . $e->getMessage()
     ]);
 } catch (Exception $e) {
     if (isset($connection) && $connection->inTransaction()) {

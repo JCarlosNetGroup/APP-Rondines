@@ -2,8 +2,18 @@
 session_start();
 require_once '../includes/dbConnection.php';
 
+header('Content-Type: application/json');
+
+// Verificar que todos los campos requeridos están presentes
+$requiredFields = ['nombre', 'apellido', 'puesto', 'telefono', 'estado', 'rol_id', 'usuario', 'contrasena'];
+foreach ($requiredFields as $field) {
+    if (empty($_POST[$field])) {
+        echo json_encode(['success' => false, 'message' => 'El campo ' . $field . ' es requerido']);
+        exit;
+    }
+}
+
 try {
-    // Recibir los datos del formulario
     $nombre = $_POST["nombre"];
     $apellido = $_POST["apellido"];
     $puesto = $_POST["puesto"];
@@ -12,6 +22,12 @@ try {
     $rol = $_POST["rol_id"];
     $usuario = $_POST["usuario"];
     $contrasena = $_POST["contrasena"];
+
+    // Validaciones adicionales
+    if ($rol === false) {
+        echo json_encode(['success' => false, 'message' => 'El rol seleccionado no es válido']);
+        exit;
+    }
 
     // Iniciar transacción
     $connection->beginTransaction();
@@ -32,25 +48,25 @@ try {
     // Obtener el ID del empleado recién insertado
     $empleado_id = $connection->lastInsertId();
 
-    // 2. Insertar en la tabla usuario
+    // 2. Insertar en la tabla usuario (ahora con contraseña en texto plano)
     $sqlUsuario = "INSERT INTO usuario (empleado_id, usuario, contraseña) 
                    VALUES (:empleado_id, :usuario, :contrasena)";
     $stmtUsuario = $connection->prepare($sqlUsuario);
     $stmtUsuario->execute([
         'empleado_id' => $empleado_id,
         'usuario' => $usuario,
-        'contrasena' => $contrasena // Recomendable hashear la contraseña
+        'contrasena' => $contrasena
     ]);
 
     // Confirmar la transacción
     $connection->commit();
 
-    echo "Usuario registrado correctamente en ambas tablas";
+    echo json_encode(['success' => true, 'message' => 'Usuario registrado correctamente']);
 } catch (PDOException $e) {
     // Revertir la transacción en caso de error
     $connection->rollBack();
-    echo "Registro fallido: " . $e->getMessage();
+    echo json_encode(['success' => false, 'message' => 'Error en el registro: ' . $e->getMessage()]);
+} finally {
+    $connection = null;
 }
-
-$connection = null;
 ?>

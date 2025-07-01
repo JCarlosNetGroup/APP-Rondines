@@ -5,9 +5,26 @@ require_once '../includes/dbConnection.php';
 header('Content-Type: application/json');
 
 try {
+    // Validar campos requeridos
+    if (empty($_POST['nombre']) || empty($_POST['latitud']) || empty($_POST['longitud'])) {
+        echo json_encode(['success' => false, 'message' => 'Todos los campos son requeridos']);
+        exit;
+    }
+
     // Validar que latitud y longitud sean numéricos
     if (!is_numeric($_POST['latitud']) || !is_numeric($_POST['longitud'])) {
         echo json_encode(['success' => false, 'message' => 'Latitud y longitud deben ser valores numéricos']);
+        exit;
+    }
+
+    // Verificar si el nombre ya existe
+    $sqlCheck = "SELECT COUNT(*) FROM ubicacion WHERE nombre = :nombre";
+    $stmtCheck = $connection->prepare($sqlCheck);
+    $stmtCheck->execute(['nombre' => $_POST['nombre']]);
+    $exists = $stmtCheck->fetchColumn();
+
+    if ($exists > 0) {
+        echo json_encode(['success' => false, 'message' => 'Ya existe una ubicación con este nombre']);
         exit;
     }
 
@@ -15,13 +32,13 @@ try {
     $connection->beginTransaction();
 
     // Insertar en la tabla ubicacion
-    $sqlUbicacion = "INSERT INTO ubicacion (nombre, descripcion, latitud, longitud, estado) 
-                    VALUES (:nombre, :descripcion, :latitud, :longitud, :estado)";
+    $sqlUbicacion = "INSERT INTO ubicacion (nombre, descripcion, latitud, longitud, estado, qr_path) 
+                    VALUES (:nombre, :descripcion, :latitud, :longitud, :estado, '')";
     $stmtUbicacion = $connection->prepare($sqlUbicacion);
     
     $stmtUbicacion->execute([
         'nombre' => $_POST['nombre'],
-        'descripcion' => $_POST['descripcion'],
+        'descripcion' => $_POST['descripcion'] ?? null,
         'latitud' => $_POST['latitud'],
         'longitud' => $_POST['longitud'],
         'estado' => $_POST['estado'],

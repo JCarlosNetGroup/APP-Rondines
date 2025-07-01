@@ -62,17 +62,37 @@ function inicializarFormularioAgregar() {
                     body: formData
                 });
 
-                const data = await response.text();
+                const data = await response.json();
 
-                if (data.includes('correctamente')) {
+                if (data.success) {
+                    // Mostrar SweetAlert de éxito
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        text: data.message || 'Usuario agregado correctamente',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                    
+                    // Cerrar modal y actualizar tabla
                     bsModal.hide();
                     formAgregarUsuario.reset();
                     fetchData();
                 } else {
-                    console.error('Error al agregar usuario:', data);
+                    // Mostrar SweetAlert de error
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Hubo un problema al agregar el usuario',
+                    });
                 }
             } catch (error) {
                 console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Ocurrió un error inesperado: ' + error.message,
+                });
             } finally {
                 submitBtn.disabled = false;
             }
@@ -83,38 +103,55 @@ function inicializarFormularioAgregar() {
 // Función para inicializar el formulario de editar usuario
 function inicializarFormularioEditar() {
     const formEditarUsuario = document.querySelector("#formEditarUsuario");
+    const modalEditUser = document.getElementById('editUser');
     
-    if (formEditarUsuario) {
-        formEditarUsuario.addEventListener("submit", function (event) {
-            event.preventDefault();
-            const formData = new FormData(this);
+    if (formEditarUsuario && modalEditUser) {
+        const bsModal = new bootstrap.Modal(modalEditUser);
 
-            fetch('../controller/updateUser.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                return response.text().then(text => {
-                    try {
-                        return JSON.parse(text);
-                    } catch (e) {
-                        console.error('Respuesta no JSON:', text);
-                        throw new Error('La respuesta del servidor no es válida');
-                    }
+        // Manejar envío del formulario
+        formEditarUsuario.addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const submitBtn = formEditarUsuario.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+
+            try {
+                const formData = new FormData(this);
+                const response = await fetch('../controller/updateUser.php', {
+                    method: 'POST',
+                    body: formData
                 });
-            })
-            .then(data => {
+
+                const data = await response.json();
+
                 if (data.success) {
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('editUser'));
-                    modal.hide();
+                    // Mostrar SweetAlert de éxito
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        text: data.message || 'Usuario actualizado correctamente',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                    
+                    bsModal.hide();
                     fetchData();
                 } else {
-                    console.error('Error al actualizar el usuario:', data.error || 'Error desconocido');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Error al actualizar el usuario',
+                    });
                 }
-            })
-            .catch(error => {
-                console.error('Error al enviar la petición de actualización:', error);
-            });
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Ocurrió un error inesperado: ' + error.message,
+                });
+            } finally {
+                submitBtn.disabled = false;
+            }
         });
     }
 }
@@ -135,36 +172,67 @@ function fetchData(searchTerm = '', estado = '') {
             const tableBody = document.querySelector("#data-table tbody");
             tableBody.innerHTML = "";
 
-            response.data.forEach((row) => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${row.id_empleado}</td>
-                    <td>${row.nombre}</td>
-                    <td>${row.apellido}</td>
-                    <td>${row.telefono}</td>
-                    <td>${row.nombre_rol}</td>
-                    <td>${row.estado}</td>
-                    <td>
-                        <a class="edit" data-bs-toggle="modal" data-bs-target="#editUser"
-                            data-user-id="${row.id_empleado}"
-                            data-user-nombre="${row.nombre}"
-                            data-user-apellido="${row.apellido}"
-                            data-user-puesto="${row.puesto}"
-                            data-user-telefono="${row.telefono}"
-                            data-user-estado="${row.estado}"
-                            data-user-rol-id="${row.id_rol}"
-                            data-user-usuario="${row.usuario}"
-                            data-user-contrasena="${row.contrasena}">
-                            <i class="bi bi-pencil-square"></i>
-                        </a>
-                    </td>
+            if (response.data && response.data.length > 0) {
+                response.data.forEach((row) => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${row.id_empleado}</td>
+                        <td>${row.nombre}</td>
+                        <td>${row.apellido}</td>
+                        <td>${row.telefono}</td>
+                        <td>${row.nombre_rol}</td>
+                        <td>
+                            <span class="badge ${getBadgeClass(row.estado)}">
+                                ${row.estado}
+                            </span>
+                        </td>
+                        <td>
+                            <a class="edit" data-bs-toggle="modal" data-bs-target="#editUser"
+                                data-user-id="${row.id_empleado}"
+                                data-user-nombre="${row.nombre}"
+                                data-user-apellido="${row.apellido}"
+                                data-user-puesto="${row.puesto}"
+                                data-user-telefono="${row.telefono}"
+                                data-user-estado="${row.estado}"
+                                data-user-rol-id="${row.id_rol}"
+                                data-user-usuario="${row.usuario}"
+                                data-user-contrasena="${row.contrasena}">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+                
+                addEventListenersToEditButtons();
+            } else {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center">No se encontraron usuarios</td>
+                    </tr>
                 `;
-                tableBody.appendChild(tr);
-            });
-            
-            addEventListenersToEditButtons();
+            }
         })
-        .catch((error) => console.error("Error al obtener los datos:", error));
+        .catch((error) => {
+            console.error("Error al obtener los datos:", error);
+            const tableBody = document.querySelector("#data-table tbody");
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-danger">Error al cargar los datos</td>
+                </tr>
+            `;
+        });
+}
+
+// Función para determinar la clase del badge según el estado
+function getBadgeClass(estado) {
+    switch (estado.toLowerCase()) {
+        case 'activo': return 'bg-success';
+        case 'bloqueado': return 'bg-danger';
+        case 'suspendido': return 'bg-warning text-dark';
+        case 'inhabilitado': return 'bg-secondary';
+        default: return 'bg-info text-dark';
+    }
 }
 
 // Función para agregar eventos a los botones de edición

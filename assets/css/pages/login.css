@@ -5,29 +5,39 @@ body {
     font-family: "Lato", sans-serif;
 }
 
-/* Sección de imagen */
-.bg-image {
-    background-image: url('../../images/networks_login_Image.jpeg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-
+.gradient-bg {
+    background: var(--color-componente);
 }
 
+/* contenedor del form */
 .form-container {
-    background-color: var(--color-fondo);
+    transform: scale(0.80);
+    transform-origin: top center;
+    width: 100%;
+    max-width: 350px;
+    margin: 0 auto;
 }
-
 
 /* formulario */
 .login-form {
+    background-color: var(--color-componente);
+    color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
     max-width: 350px;
-    height: 400px;
-    margin: 0 auto;
-    background-color: #fff;
-    border-radius: 5px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    box-sizing: border-box;
+}
+.form-control {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
 
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.6);
 }
 
 .password-toggle-icon {
@@ -36,51 +46,37 @@ body {
     right: 15px;
     transform: translateY(17%);
     cursor: pointer;
-    user-select: none;
-
+    color: #fff;
 }
 
 .btn-form {
-    background-color: var(--color-componente);
+    background-color: rgba(230, 125, 34, 0.808);
     color: #fff;
+    border: none;
+    padding: 8px;
+    font-size: 0.9rem;
+    border-radius: 5px;
+    transition: all 0.3s ease;
 }
 
 .btn-form:hover {
     background-color: rgb(60, 75, 91);
-    color: #fff;
+    transform: translateY(-1px);
 }
 
-.btn:first-child:active {
-    background-color: rgb(60, 75, 91);
-    color: #fff;
+.logo {
+    max-width: 200px;
+    margin-bottom: 1rem;
 }
 
 /* Responsividad */
 @media (max-width: 767.98px) {
-    .form-container {
-        background-color: var(--color-componente);
-    }
-
-    .bg-image {
-        display: none !important;
-    }
-
-    .logo-mobile {
-        width: 300px;
-    }
-
     .login-form {
-        padding: 0px 40px 70px 40px !important;
-        height: auto;
-        font-size: 15px;
-        color: #fff;
-        background-color: var(--color-componente);
-        box-shadow: none;
+        padding: 1.5rem;
+        transform: none;
     }
-    .btn-form{
-        font-size: 15px;
-        color: rgb(255, 255, 255);
-        background-color: rgba(230, 125, 34, 0.808);
+    
+    .logo {
+        max-width: 160px;
     }
-
 }

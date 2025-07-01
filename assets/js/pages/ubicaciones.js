@@ -19,7 +19,7 @@ function init() {
 function setupSearchAndFilter() {
     const inputBusqueda = document.getElementById('inputBusqueda');
     const selectEstado = document.getElementById('selectEstado');
-    
+
     // Evento para el input de búsqueda con debounce
     if (inputBusqueda) {
         inputBusqueda.addEventListener('input', debounce(function (e) {
@@ -27,7 +27,7 @@ function setupSearchAndFilter() {
             fetchTableLocations(e.target.value, estado);
         }, 300));
     }
-    
+
     // Evento para el select de estado
     if (selectEstado) {
         selectEstado.addEventListener('change', function (e) {
@@ -42,7 +42,7 @@ function setupSearchAndFilter() {
 //* Función debounce para limitar la frecuencia de ejecución
 function debounce(func, wait) {
     let timeout;
-    return function() {
+    return function () {
         const context = this;
         const args = arguments;
         clearTimeout(timeout);
@@ -62,7 +62,7 @@ function fetchTableLocations(searchTerm = '', estado = '') {
     // Añade parámetros de búsqueda y filtro
     if (searchTerm) params.append('search', searchTerm);
     if (estado) params.append('estado', estado);
-    
+
     if (params.toString()) url += `?${params.toString()}`;
 
     // Realiza la petición fetch al servidor
@@ -75,7 +75,7 @@ function fetchTableLocations(searchTerm = '', estado = '') {
             // Procesa cada fila de datos recibidos
             response.data.forEach((row) => {
                 const tr = document.createElement("tr");
-                
+
                 // Función para crear celdas
                 const createCell = (value) => {
                     const td = document.createElement("td");
@@ -88,7 +88,7 @@ function fetchTableLocations(searchTerm = '', estado = '') {
                 tr.appendChild(createCell(row.nombre));
                 tr.appendChild(createCell(row.latitud));
                 tr.appendChild(createCell(row.longitud));
-                
+
                 // Celda de estado con clase CSS según el estado
                 const estadoCell = document.createElement("td");
                 estadoCell.textContent = row.estado;
@@ -153,7 +153,7 @@ function formAddLocation() {
 
             try {
                 const formData = new FormData(this);
-                
+
                 // Envía los datos al servidor
                 const response = await fetch('../controller/addLocation.php', {
                     method: 'POST',
@@ -166,7 +166,7 @@ function formAddLocation() {
                 // Prepara datos para generar el QR (solo se necesita el ID ahora)
                 const qrData = {
                     id: data.id, // El ID de la ubicación recién creada
-                    // nombre, latitud, longitud ya no son necesarios para el contenido del QR
+
                 };
 
                 // Genera y guarda el QR
@@ -192,6 +192,7 @@ function formAddLocation() {
 
 
 //* Función para editar ubicación
+//* Función para editar ubicación
 function formEditLocation() {
     const modal = document.getElementById('editLocation');
     const form = document.getElementById('formEditLocation');
@@ -200,7 +201,7 @@ function formEditLocation() {
         const bsModal = new bootstrap.Modal(modal);
 
         // Configura el modal cuando se va a mostrar
-        modal.addEventListener('show.bs.modal', function(event) {
+        modal.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
             if (!button) return;
 
@@ -221,24 +222,42 @@ function formEditLocation() {
             document.getElementById('edit-longitud').value = longitud || '';
             document.getElementById('edit-estado').value = estado || '';
 
+            // Configura el enlace "Ver Ubicación" para Google Maps
+            const viewLocationLink = document.querySelector('#editLocation .linkMaps');
+            if (latitud && longitud) {
+                viewLocationLink.href = `https://www.google.com/maps?q=${latitud},${longitud}`;
+                viewLocationLink.onclick = null; // Elimina cualquier evento previo
+            } else {
+                viewLocationLink.href = '#';
+                viewLocationLink.onclick = function (e) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Coordenadas no disponibles',
+                        text: 'Esta ubicación no tiene coordenadas definidas',
+                        confirmButtonColor: '#283747'
+                    });
+                };
+            }
+
             // Muestra la vista previa del QR si existe
             const qrPreview = document.getElementById('qrPreview');
             if (qrPath) {
-                const fullQrPath = qrPath.startsWith('http') ? qrPath : 
-                                     `${window.location.origin}${qrPath.startsWith('/') ? '' : '/'}${qrPath}`;
-                
+                const fullQrPath = qrPath.startsWith('http') ? qrPath :
+                    `${window.location.origin}${qrPath.startsWith('/') ? '' : '/'}${qrPath}`;
+
                 const img = document.createElement('img');
                 img.src = fullQrPath;
                 img.className = 'img-fluid';
                 img.style.maxWidth = '100%';
                 img.alt = `Código QR para ${nombre}`;
-                
-                img.onload = function() {
+
+                img.onload = function () {
                     qrPreview.innerHTML = '';
                     qrPreview.appendChild(img);
                 };
-                
-                img.onerror = function() {
+
+                img.onerror = function () {
                     qrPreview.innerHTML = `
                         <div class="alert alert-warning">
                             <p>No se pudo cargar el código QR</p>
@@ -246,7 +265,7 @@ function formEditLocation() {
                         </div>
                     `;
                 };
-                
+
                 qrPreview.innerHTML = '<p>Cargando QR...</p>';
                 qrPreview.appendChild(img);
             } else {
@@ -255,7 +274,7 @@ function formEditLocation() {
         });
 
         // Maneja el envío del formulario de edición
-        form.addEventListener('submit', async function(e) {
+        form.addEventListener('submit', async function (e) {
             e.preventDefault();
             const submitBtn = form.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
@@ -306,7 +325,7 @@ function formEditLocation() {
         });
 
         // Maneja la descarga del QR
-        document.getElementById('downloadQR')?.addEventListener('click', function() {
+        document.getElementById('downloadQR')?.addEventListener('click', function () {
             const qrImg = document.querySelector('#qrPreview img');
             if (qrImg) {
                 // Crea un enlace temporal para descargar la imagen
@@ -346,7 +365,6 @@ function showErrorAlert() {
 }
 
 // Genera un código QR a partir de los datos proporcionados
-// **MODIFICACIÓN CLAVE AQUÍ: EL QR AHORA SOLO CONTIENE EL ID DE LA UBICACIÓN**
 async function generateQR(data) {
     return new Promise((resolve, reject) => {
         // Se asegura de que 'data' contenga un 'id' válido
