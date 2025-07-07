@@ -135,7 +135,7 @@ include_once '../controller/ValidarSesion.php';
                                     <label for="status" class="form-label">Estado</label>
                                     <select class="form-select" id="status" name="estado" required>
                                         <option value="">Selecciona la disponibilidad de la ubicación</option>
-                                        <option value="activa">Activa</option>
+                                        <option value="activa" selected>Activa</option>
                                         <option value="Suspendida">Suspendida (Sin Acceso)</option>
                                         <option value="Bloqueada">Bloqueada (Deshabilitada)</option>
                                     </select>

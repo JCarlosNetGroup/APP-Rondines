@@ -1,5 +1,6 @@
 @import url(../variables.css);
 
+/* Estilos base */
 * {
     margin: 0;
     box-sizing: border-box;
@@ -8,13 +9,34 @@
 .content-main {
     width: 100%;
     background-color: var(--color-fondo);
+    min-height: 100vh;
 }
 
 /* ------------------------------
-* Header del contenido principal 
+* Header y menú móvil 
 -------------------------------*/
+header {
+    z-index: 1020;
+}
 
-/* Estilos para el menú móvil */
+header .headerModule {
+    background-color: var(--color-componente);
+}
+
+header #menu-btn {
+    border: 1px solid var(--color-fondo);
+}
+
+header #menu-btn i {
+    color: #fff;
+}
+
+.divider-sections{
+    background-color: var(--color-componente);
+    color: #fff;
+}
+
+/* Menú móvil */
 .mobile-menu-container {
     position: fixed;
     top: 0;
@@ -34,20 +56,26 @@
     left: 0;
 }
 
+.user-info {
+    padding: 20px;
+    color: white;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.164);
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
 .mobile-menu-content {
     flex: 1;
     display: flex;
     flex-direction: column;
-    position: relative;
-    z-index: 1051;
+    padding-top: 20px;
 }
 
 .menu-items-top {
     flex: 1;
-}
-
-.menu-items-bottom {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .mobile-menu-item {
@@ -62,13 +90,13 @@
 .mobile-menu-item i {
     font-size: 1.2rem;
     vertical-align: middle;
+    margin-right: 8px;
 }
 
 .logout-item {
     color: #ff6b6b !important;
 }
 
-/* Overlay para el fondo */
 .menu-overlay {
     position: fixed;
     top: 0;
@@ -78,83 +106,116 @@
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 1040;
     display: none;
-    transition: opacity 0.3s ease;
 }
 
 .menu-overlay.show {
     display: block;
 }
 
-/* Evitar scroll cuando el menú está abierto */
 body.menu-open {
     overflow: hidden;
-    position: fixed;
-    width: 100%;
-}
-
-/* Estilos para la información del usuario */
-.user-info {
-    padding: 20px;
-    color: white;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.156);
-}
-
-.user-name {
-    font-weight: 600;
-    font-size: 1.1rem;
-}
-
-/* Encabezado sticky */
-header {
-    z-index: 1020;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-header .headerModule {
-    background-color: var(--color-componente);
-}
-
-header #menu-btn {
-    border: 1px solid var(--color-fondo);
-}
-
-header #menu-btn i {
-    color: #fff;
 }
 
 /* ----------------------------
-  * Seccion Comunicado Principal 
-  -----------------------------*/
+* Estilos de comunicados 
+----------------------------*/
+.comunicado.card {
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+}
 
-.comunicado {
-    padding: 10px 20px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+.comunicado.card:hover {
+    transform: translateY(-3px);
+}
+
+.card-title.h6 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.badge-container {
+    margin-bottom: 1rem;
+}
+
+.badge {
+    font-weight: 500;
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+}
+
+.descripcion-comunicado {
+    color: var(--color-texto);
+    line-height: 1.5;
+    margin-bottom: 1rem;
 }
 
 .contenido-comunicado {
-    max-width: 900px;
-    max-height: 300px;
-    overflow: hidden;
+    margin: 1rem 0;
 }
 
-.contenido-comunicado img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+/* Badges específicos */
+.bg-prioridad-medio {
+    background-color: var(--color-componente);
 }
 
-/* Estilos para lazy loading */
-.lazy {
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out;
+.bg-prioridad-importante {
+    background-color: rgb(187, 7, 7);
 }
 
-.lazy.loaded {
-    opacity: 1;
+.bg-success {
+    background-color: #127032 !important;
 }
 
+/* Footer del comunicado */
+.comunicado footer {
+    font-size: 0.95rem;
+}
+
+.fechaComunicado,
+.autor-comunicado {
+    display: flex;
+    line-height: .1;
+}
+
+/* Estilos para loading */
 #loading-sentinel {
     height: 1px;
     width: 100%;
+}
+
+.spinner-border {
+    width: 2rem;
+    height: 2rem;
+}
+
+.modal-header {
+  color: #fff;
+  background-color: var(--color-componente);
+}
+
+.btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Estilos para el modal */
+.modal-content {
+    border-radius: 10px;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-body .comunicado-content {
+    white-space: pre-line;
+    line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+
+    .mobile-menu-container {
+        width: 80%;
+    }
 }

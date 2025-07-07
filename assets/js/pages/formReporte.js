@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const ubicacionId = urlParams.get('id_ubicacion');
     const rondinId = urlParams.get('id_rondin');
+    const fromScan = urlParams.get('from_scan') === 'true';
 
     let ubicacionData = null;
     let currentStream = null;
@@ -100,19 +101,19 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         showConfirmDialog: async (options) => {
-    return Swal.fire({
-        title: options.title || '¿Estás seguro?',
-        text: options.text || '',
-        icon: options.icon || 'question',
-        showCancelButton: true,
-        confirmButtonText: options.confirmText || 'Sí, continuar',
-        cancelButtonText: options.cancelText || 'Cancelar',
-        customClass: {
-            popup: 'custom-swal-popup',
-            actions: 'custom-swal-actions',
-            confirmButton: 'btn custom-confirm-button',
-            cancelButton: 'btn btn-secondary ms-1'
-        },
+            return Swal.fire({
+                title: options.title || '¿Estás seguro?',
+                text: options.text || '',
+                icon: options.icon || 'question',
+                showCancelButton: true,
+                confirmButtonText: options.confirmText || 'Sí, continuar',
+                cancelButtonText: options.cancelText || 'Cancelar',
+                customClass: {
+                    popup: 'custom-swal-popup',
+                    actions: 'custom-swal-actions',
+                    confirmButton: 'btn custom-confirm-button',
+                    cancelButton: 'btn btn-secondary ms-1'
+                },
                 buttonsStyling: false,
                 reverseButtons: true
             });
@@ -374,6 +375,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 await Utils.showAlert('¡Reporte guardado exitosamente! Ahora puedes agregar incidencias si es necesario o finalizar.', 'success');
 
+                // Redirigir con parámetro saved=true solo si venimos del escaneo
+                if (fromScan) {
+                    window.location.href = `ubicacionesRuta.php?id_rondin=${rondinId}&saved=true&id_ubicacion=${ubicacionId}`;
+                }
+
             } catch (error) {
                 console.error('Error al guardar reporte:', error);
                 await Utils.showAlert('Error al guardar: ' + error.message, 'error');
@@ -478,7 +484,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const EventHandlers = {
         setupListeners: () => {
             // Botón de regresar
-            Elements.backBtn.addEventListener('click', () => window.history.back());
+            Elements.backBtn.addEventListener('click', async (e) => {
+                if (reporteGuardado) {
+                    window.history.back();
+                } else {
+                    const result = await Utils.showConfirmDialog({
+                        title: 'Salir sin guardar',
+                        text: '¿Estás seguro de que deseas salir sin guardar el reporte? Los cambios no se guardarán.',
+                        confirmText: 'Sí, salir',
+                        cancelText: 'Cancelar'
+                    });
+                    
+                    if (result.isConfirmed) {
+                        window.history.back();
+                    }
+                }
+            });
 
             // Configuración de la Cámara Principal - Trasera
             Elements.startCameraMain.addEventListener('click', async () => {
@@ -600,7 +621,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 if (result.isConfirmed) {
-                    window.location.href = `ubicacionesRuta.php?id_rondin=${rondinId}`;
+                    // Redirigir con parámetro saved=true solo si venimos del escaneo
+                    if (fromScan) {
+                        window.location.href = `ubicacionesRuta.php?id_rondin=${rondinId}&saved=true&id_ubicacion=${ubicacionId}`;
+                    } else {
+                        window.location.href = `ubicacionesRuta.php?id_rondin=${rondinId}`;
+                    }
                 }
             });
 

@@ -184,7 +184,7 @@ include_once '../controller/ValidarSesion.php'
                                             <label for="estadoRuta" class="form-label">Estado</label>
                                             <select class="form-select" id="estadoRuta" name="estado" required>
                                                 <option value="">Selecciona el estado de la ruta</option>
-                                                <option value="activa">Activa</option>
+                                                <option value="activa" selected>Activa</option>
                                                 <option value="Suspendida">Suspendida (Sin Acceso)</option>
                                                 <option value="Bloqueada">Bloqueada (Deshabilitada)</option>
                                             </select>

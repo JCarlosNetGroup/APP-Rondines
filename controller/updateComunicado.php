@@ -6,27 +6,35 @@ header('Content-Type: application/json');
 
 try {
     // Validar campos requeridos
-    if (empty($_POST['id_comunicado']) || empty($_POST['titulo']) || empty($_POST['contenido']) || empty($_POST['fecha_expiracion']) || empty($_POST['prioridad'])) {
-        throw new Exception('Todos los campos son requeridos para la actualización.');
+    if (empty($_POST['id_comunicado'])) {
+        throw new Exception('ID de comunicado es requerido para la actualización.');
     }
 
-    // Verificar empleado_id en sesión (asumiendo que solo empleados autorizados pueden editar)
+    // Verificar empleado_id en sesión
     if (!isset($_SESSION['empleado_id'])) {
         throw new Exception('No autorizado para editar comunicados.');
     }
 
-    // La fecha de expiración que viene del formulario debe interpretarse hasta el final del día
-    $fechaExpiracion = new DateTime($_POST['fecha_expiracion'] . ' 23:59:59'); 
-    
-    // Obtener la fecha actual y establecerla al inicio del día (00:00:00) para una comparación justa
-    $fechaActual = new DateTime();
-    $fechaActual->setTime(0, 0, 0); 
+    // Obtener información del comunicado para verificar el autor
+    $sqlCheck = "SELECT empleado_id FROM comunicados WHERE id_comunicado = :id_comunicado";
+    $stmtCheck = $connection->prepare($sqlCheck);
+    $stmtCheck->execute(['id_comunicado' => $_POST['id_comunicado']]);
+    $comunicado = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
-    // Comparar la fecha de expiración (fin del día) con la fecha actual (inicio del día)
-    if ($fechaExpiracion < $fechaActual) {
-        throw new Exception('La fecha de expiración no puede ser anterior a la fecha actual.');
+    if (!$comunicado) {
+        throw new Exception('Comunicado no encontrado.');
     }
-  
+
+    // Verificar que el empleado que intenta editar es el autor
+    if ($comunicado['empleado_id'] != $_SESSION['empleado_id']) {
+        throw new Exception('Solo el autor del comunicado puede editarlo.');
+    }
+
+    // Validar campos de actualización
+    if (empty($_POST['titulo']) || empty($_POST['contenido']) || empty($_POST['fecha_expiracion']) || empty($_POST['prioridad'])) {
+        throw new Exception('Todos los campos son requeridos para la actualización.');
+    }
+
 
     $connection->beginTransaction();
 

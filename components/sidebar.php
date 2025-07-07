@@ -6,7 +6,7 @@
         <div class="row">
             <div class="column">
                 <header>
-                    <a href="index.php">
+                    <a href="#">
                         <img src="../assets/images/_logo-inicio.png">
                     </a>
                     <button class="btn" id="toggle-sidebar"><i class="bi bi-arrow-left-right"></i></button>

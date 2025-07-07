@@ -224,3 +224,8 @@ main {
 /* .bg-estado-expirado {
     background-color: #6e6c6a; 
 } */
+
+.contenido-con-saltos {
+    white-space: pre-line;
+    word-wrap: break-word;
+}

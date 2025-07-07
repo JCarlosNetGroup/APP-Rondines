@@ -62,27 +62,42 @@ include_once '../controller/ValidarSesion.php';
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
 
                         <div class="d-flex flex-column flex-md-row gap-3 w-100">
-                            <input type="search" class="form-control" placeholder="Buscar comunicado..." id="search-comunicado-input">
+                            <div class="form-group d-flex flex-column flex-grow-1">
+                                <label for="search-comunicado-input" class="form-label text-muted px-1 m-0">Titulo</label>
+                                <input type="search" class="form-control form-control-sm" placeholder="Buscar comunicado..." id="search-comunicado-input">
+                            </div>
 
-                            <input type="date" class="form-control form-control-sm" id="filter-date-from" title="Fecha desde">
+                            <div class="form-group d-flex flex-column flex-grow-1">
+                                <label for="filter-date-from" class="form-label text-muted px-1 m-0">Desde</label>
+                                <input type="date" class="form-control form-control-sm" id="filter-date-from" title="Fecha desde">
+                            </div>
 
-                            <input type="date" class="form-control form-control-sm" id="filter-date-to" title="Fecha hasta">
+                            <div class="form-group d-flex flex-column flex-grow-1">
+                                <label for="filter-date-to" class="form-label text-muted px-1 m-0">Hasta</label>
+                                <input type="date" class="form-control form-control-sm" id="filter-date-to" title="Fecha hasta">
+                            </div>
 
-                            <select class="form-select" id="filter-comunicado-select">
-                                <option value="">Todos</option>
-                                <option value="vigente" selected>Vigentes</option>
-                                <option value="expirado">Expirados</option>
-                            </select>
+                            <div class="form-group d-flex flex-column flex-grow-1">
+                                <label for="filter-comunicado-select" class="form-label text-muted px-1 m-0">Vigencia</label>
+                                <select class="form-select form-select-sm" id="filter-comunicado-select">
+                                    <option value="">Todos</option>
+                                    <option value="vigente" selected>Vigentes</option>
+                                    <option value="expirado">Expirados</option>
+                                </select>
+                            </div>
 
-                            <select class="form-select" id="filter-comunicado-prioridad">
-                                <option value="">Todos</option>
-                                <option value="medio">Medio</option>
-                                <option value="importante">Importante</option>
-                            </select>
+                            <div class="form-group d-flex flex-column flex-grow-1">
+                                <label for="filter-comunicado-prioridad" class="form-label text-muted px-1 m-0">Prioridad</label>
+                                <select class="form-select form-select-sm" id="filter-comunicado-prioridad">
+                                    <option value="">Todos</option>
+                                    <option value="medio">Medio</option>
+                                    <option value="importante">Importante</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <nav class="mt-3 mt-md-0">
-                            <ul class="pagination justify-content-center mb-0" id="pagination-container">
+                        <nav class="mt-3 mt-md-4">
+                            <ul class="pagination pagination-sm justify-content-center mb-0" id="pagination-container">
                             </ul>
                         </nav>
                     </div>
@@ -125,7 +140,7 @@ include_once '../controller/ValidarSesion.php';
                                     </div>
                                     <div class="card-body">
                                         <select class="form-select" id="agregarPrioridad" name="prioridad" required>
-                                            <option value="normal" selected>Normal</option>
+                                            <option value="medio" selected>Medio</option>
                                             <option value="importante">Importante</option>
                                         </select>
                                     </div>
@@ -271,6 +286,9 @@ include_once '../controller/ValidarSesion.php';
         </div>
     </div>
 
+    <script>
+        window.currentUserId = <?php echo json_encode($_SESSION['empleado_id'] ?? null); ?>;
+    </script>
     <script src="../assets/js/components/sidebar.js"></script>
     <script src="../assets/js/pages/dashboard.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

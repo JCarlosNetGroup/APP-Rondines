@@ -15,7 +15,6 @@ try {
 
     $comunicadoId = (int)$_GET['id'];
 
-    // Modificación aquí: Incluir JOIN con tabla de usuarios y seleccionar nombre_completo
     $sql = "SELECT
                 c.id_comunicado,
                 c.titulo,
@@ -23,6 +22,7 @@ try {
                 c.fecha_publicacion,
                 c.fecha_expiracion,
                 c.prioridad,
+                c.empleado_id,
                 CONCAT(e.nombre, ' ', e.apellido) AS autor,
                 CASE
                     WHEN c.fecha_expiracion >= CURDATE() THEN 'vigente'

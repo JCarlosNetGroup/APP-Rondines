@@ -15,7 +15,7 @@
     <div class="container-fluid vh-100 gradient-bg">
         <div class="row h-100 justify-content-center align-items-start pt-5">
 
-            <div class="col-lg-3 col-md-6 col-sm-8 mt-5">
+            <div class="col-lg-3 col-md-6 col-sm-8 mt-5 pt-4">
 
                 <div class="text-center">
                     <img src="assets/images/_logo-inicio.png" alt="Logo Centinela" class="img-fluid logo">

@@ -13,18 +13,8 @@ try {
     // Verificar empleado_id en sesión
     if (!isset($_SESSION['empleado_id'])) {
         throw new Exception('No autorizado');
-    }
+    }-
 
-    // --- CAMBIO AQUÍ ---
-    // Validar fecha de expiración
-    $fechaExpiracion = new DateTime($_POST['fecha_expiracion'] . ' 23:59:59'); // Establecer al final del día
-    $fechaActual = new DateTime();
-    $fechaActual->setTime(0, 0, 0); // Establecer 'hoy' al inicio del día (00:00:00)
-    
-    if ($fechaExpiracion < $fechaActual) {
-        throw new Exception('La fecha de expiración no puede ser anterior a la fecha actual');
-    }
-    // --- FIN CAMBIO ---
 
     $connection->beginTransaction();
 
@@ -34,15 +24,15 @@ try {
               fecha_publicacion, fecha_expiracion, prioridad, fecha_actualizacion) 
              VALUES 
              (:titulo, :contenido, :empleado_id, 
-              NOW(), :fecha_expiracion, :prioridad, NOW())";
-    
+              NOW(), :fecha_expiracion_db, :prioridad, NOW())";
+
     $stmt = $connection->prepare($sql);
     $stmt->execute([
         'titulo' => $_POST['titulo'],
         'contenido' => $_POST['contenido'],
         'empleado_id' => $_SESSION['empleado_id'],
-        'fecha_expiracion' => $_POST['fecha_expiracion'],
-        'prioridad' => $_POST['prioridad'] ?? 'Medio'
+        'fecha_expiracion_db' => $_POST['fecha_expiracion'],
+        'prioridad' => $_POST['prioridad'] ?? 'medio'
     ]);
 
     $connection->commit();
@@ -57,7 +47,7 @@ try {
     if ($connection->inTransaction()) {
         $connection->rollBack();
     }
-    
+
     echo json_encode([
         'success' => false,
         'message' => 'Error: ' . $e->getMessage()

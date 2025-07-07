@@ -59,75 +59,100 @@ function fetchTableLocations(searchTerm = '', estado = '') {
     let url = `../controller/tableLocation.php`;
     const params = new URLSearchParams();
 
-    // Añade parámetros de búsqueda y filtro
     if (searchTerm) params.append('search', searchTerm);
     if (estado) params.append('estado', estado);
 
     if (params.toString()) url += `?${params.toString()}`;
 
-    // Realiza la petición fetch al servidor
     fetch(url)
         .then((response) => response.json())
         .then((response) => {
             const tableBody = document.querySelector("#data-table tbody");
-            const fragment = document.createDocumentFragment();
-
-            // Procesa cada fila de datos recibidos
-            response.data.forEach((row) => {
-                const tr = document.createElement("tr");
-
-                // Función para crear celdas
-                const createCell = (value) => {
-                    const td = document.createElement("td");
-                    td.textContent = value;
-                    return td;
-                };
-
-                // Añade celdas con los datos de la ubicación
-                tr.appendChild(createCell(row.id_ubicacion));
-                tr.appendChild(createCell(row.nombre));
-                tr.appendChild(createCell(row.latitud));
-                tr.appendChild(createCell(row.longitud));
-
-                // Celda de estado con clase CSS según el estado
-                const estadoCell = document.createElement("td");
-                estadoCell.textContent = row.estado;
-                estadoCell.className = `estado-${row.estado.toLowerCase()}`;
-                tr.appendChild(estadoCell);
-
-                // Celda de acciones con botón de edición
-                const actionsTd = document.createElement("td");
-                const editLink = document.createElement("a");
-                editLink.className = "edit";
-                editLink.setAttribute("data-bs-toggle", "modal");
-                editLink.setAttribute("data-bs-target", "#editLocation");
-
-                // Almacena todos los datos de la ubicación como atributos para el modal de edición
-                editLink.setAttribute("data-ubicacion-id", row.id_ubicacion);
-                editLink.setAttribute("data-ubicacion-nombre", row.nombre);
-                editLink.setAttribute("data-ubicacion-descripcion", row.descripcion);
-                editLink.setAttribute("data-ubicacion-latitud", row.latitud);
-                editLink.setAttribute("data-ubicacion-longitud", row.longitud);
-                editLink.setAttribute("data-ubicacion-estado", row.estado);
-                editLink.setAttribute("data-ubicacion-qrpath", row.qr_path || '');
-
-                // Añade icono de edición
-                const icon = document.createElement("i");
-                icon.className = "bi bi-pencil-square";
-                editLink.appendChild(icon);
-                actionsTd.appendChild(editLink);
-                tr.appendChild(actionsTd);
-                fragment.appendChild(tr);
-            });
-
-            // Limpia la tabla y añade las nuevas filas
             tableBody.innerHTML = "";
-            tableBody.appendChild(fragment);
+
+            if (response.data && response.data.length > 0) {
+                response.data.forEach((row) => {
+                    const tr = document.createElement("tr");
+                    
+                    // Función auxiliar para crear celdas
+                    const createCell = (value) => {
+                        const td = document.createElement("td");
+                        td.textContent = value;
+                        return td;
+                    };
+
+                    // Añadir celdas normales
+                    tr.appendChild(createCell(row.id_ubicacion));
+                    tr.appendChild(createCell(row.nombre));
+                    tr.appendChild(createCell(row.latitud));
+                    tr.appendChild(createCell(row.longitud));
+
+                    // Celda de estado con badge
+                    const estadoCell = document.createElement("td");
+                    const badge = document.createElement("span");
+                    badge.className = `badge ${getBadgeClass(row.estado)}`;
+                    badge.textContent = row.estado;
+                    estadoCell.appendChild(badge);
+                    tr.appendChild(estadoCell);
+
+                    // Celda de acciones
+                    const actionsCell = document.createElement("td");
+                    const editLink = document.createElement("a");
+                    editLink.className = "edit";
+                    editLink.setAttribute("data-bs-toggle", "modal");
+                    editLink.setAttribute("data-bs-target", "#editLocation");
+                    
+                    // Añadir atributos de datos para edición
+                    editLink.setAttribute("data-ubicacion-id", row.id_ubicacion);
+                    editLink.setAttribute("data-ubicacion-nombre", row.nombre);
+                    editLink.setAttribute("data-ubicacion-descripcion", row.descripcion);
+                    editLink.setAttribute("data-ubicacion-latitud", row.latitud);
+                    editLink.setAttribute("data-ubicacion-longitud", row.longitud);
+                    editLink.setAttribute("data-ubicacion-estado", row.estado);
+                    editLink.setAttribute("data-ubicacion-qrpath", row.qr_path || '');
+
+                    // Icono de edición
+                    const icon = document.createElement("i");
+                    icon.className = "bi bi-pencil-square";
+                    editLink.appendChild(icon);
+                    actionsCell.appendChild(editLink);
+                    tr.appendChild(actionsCell);
+                    
+                    tableBody.appendChild(tr);
+                });
+            } else {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center">No se encontraron ubicaciones</td>
+                    </tr>
+                `;
+            }
         })
         .catch((error) => {
             console.error("Error al obtener los datos:", error);
-            showError("Error al cargar los datos de ubicaciones");
+            const tableBody = document.querySelector("#data-table tbody");
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-danger">Error al cargar los datos</td>
+                </tr>
+            `;
         });
+}
+
+// Función para determinar la clase del badge según el estado
+function getBadgeClass(estado) {
+    if (!estado) return 'bg-secondary';
+    
+    const estadoLower = estado.toLowerCase();
+    
+    switch (estadoLower) {
+        case 'activa':
+            return 'bg-success';
+        case 'suspendida':
+            return 'bg-warning text-dark';
+        case 'bloqueada':
+            return 'bg-danger';
+    }
 }
 
 
@@ -190,8 +215,6 @@ function formAddLocation() {
 }
 
 
-
-//* Función para editar ubicación
 //* Función para editar ubicación
 function formEditLocation() {
     const modal = document.getElementById('editLocation');

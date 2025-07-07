@@ -11,7 +11,7 @@ body {
 
 /* contenedor del form */
 .form-container {
-    transform: scale(0.80);
+    transform: scale(1);
     transform-origin: top center;
     width: 100%;
     max-width: 350px;

@@ -60,7 +60,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Eventos del modal del escáner QR
         DOM.qrScannerModal._element.addEventListener('shown.bs.modal', handleModalShown);
         DOM.qrScannerModal._element.addEventListener('hidden.bs.modal', handleModalHidden);
-
     }
 
     function handleLocationClick(event) {
@@ -72,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!ubicacion) return;
 
         const isEnabled = index === 0 ||
-                                 (index > 0 && state.ubicacionesEscaneadas.includes(state.ubicacionesData[index - 1].id));
+                         (index > 0 && state.ubicacionesEscaneadas.includes(state.ubicacionesData[index - 1].id));
         const isScanned = state.ubicacionesEscaneadas.includes(ubicacion.id);
 
         if (isEnabled && !isScanned) {
@@ -156,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         state.ubicacionesData.forEach((ubicacion, index) => {
             const isEnabled = index === 0 ||
-                                     (index > 0 && state.ubicacionesEscaneadas.includes(state.ubicacionesData[index - 1].id));
+                             (index > 0 && state.ubicacionesEscaneadas.includes(state.ubicacionesData[index - 1].id));
             const isScanned = state.ubicacionesEscaneadas.includes(ubicacion.id);
 
             const item = document.createElement('div');
@@ -192,7 +191,6 @@ document.addEventListener('DOMContentLoaded', function() {
         );
 
         if (allCompleted) {
-            // Usar setTimeout para asegurar que la UI se actualice primero
             setTimeout(() => {
                 Swal.fire({
                     title: '¡Ruta Concluida!',
@@ -203,7 +201,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     allowEscapeKey: false
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Limpiar el estado guardado para este rondín
                         const rondinId = getRondinId();
                         if (rondinId) {
                             localStorage.removeItem(`rondin_${rondinId}_escaneadas`);
@@ -226,14 +223,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!rondinId) return;
 
         try {
-            // Verificar si hay un parámetro de reset en la URL
             const urlParams = new URLSearchParams(window.location.search);
             const shouldReset = urlParams.get('reset') === 'true';
+            const isSaved = urlParams.get('saved') === 'true';
+            const ubicacionId = urlParams.get('id_ubicacion');
 
             if (shouldReset) {
                 localStorage.removeItem(`rondin_${rondinId}_escaneadas`);
                 state.ubicacionesEscaneadas = [];
-                // Remover el parámetro de reset de la URL sin recargar
                 window.history.replaceState({}, document.title, window.location.pathname + `?id_rondin=${rondinId}`);
             } else {
                 const escaneadas = localStorage.getItem(`rondin_${rondinId}_escaneadas`);
@@ -242,9 +239,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!Array.isArray(state.ubicacionesEscaneadas)) {
                     state.ubicacionesEscaneadas = [];
                 }
+
+                // Si viene de un reporte guardado, agregar la ubicación
+                if (isSaved && ubicacionId && !state.ubicacionesEscaneadas.includes(ubicacionId)) {
+                    state.ubicacionesEscaneadas.push(ubicacionId);
+                    localStorage.setItem(`rondin_${rondinId}_escaneadas`, JSON.stringify(state.ubicacionesEscaneadas));
+                    // Remover el parámetro de la URL
+                    window.history.replaceState({}, document.title, window.location.pathname + `?id_rondin=${rondinId}`);
+                }
             }
 
-            // Verificar si todas las ubicaciones están completadas al cargar
             if (state.ubicacionesData.length > 0) {
                 checkAllLocationsCompleted();
             }
@@ -258,8 +262,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const rondinId = getRondinId();
         if (!rondinId || state.ubicacionesEscaneadas.includes(ubicacionId)) return;
 
-        state.ubicacionesEscaneadas.push(ubicacionId);
-        localStorage.setItem(`rondin_${rondinId}_escaneadas`, JSON.stringify(state.ubicacionesEscaneadas));
+        // No guardar automáticamente, solo cuando se confirme el reporte guardado
+        // El guardado real se hace en loadScannedLocations cuando viene con saved=true
     }
 
     // ========== MANEJO DE ERRORES ==========
@@ -320,7 +324,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const cameras = await Html5Qrcode.getCameras();
         if (cameras.length === 0) throw new Error('No se detectaron cámaras disponibles.');
 
-        // Aquí se sigue priorizando la trasera, o la primera disponible si no hay trasera.
         state.currentCameraId = cameras.find(cam => cam.label.toLowerCase().includes('back'))?.id || cameras[0].id;
 
         await state.html5QrCode.start(
@@ -329,7 +332,6 @@ document.addEventListener('DOMContentLoaded', function() {
             qrCodeData => verifyQR(qrCodeData),
             errorMessage => !errorMessage.includes('NotFoundException') && showScannerError(errorMessage)
         );
-
     }
 
     // ========== VERIFICACIÓN QR ==========
@@ -359,18 +361,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function handleSuccessfulScan() {
-        saveScannedLocation(state.currentUbicacion.id);
-        renderLocations();
-
+        // Solo redirige, no marca como completada todavía
         await stopScannerIfRunning();
         DOM.qrScannerModal.hide();
-
         redirectToReportForm();
     }
 
     function redirectToReportForm() {
         const rondinId = getRondinId();
-        window.location.href = `/Centinela/pages/formReporte.php?id_ubicacion=${state.currentUbicacion.id}&id_rondin=${rondinId}`;
+        window.location.href = `/Centinela/pages/formReporte.php?id_ubicacion=${state.currentUbicacion.id}&id_rondin=${rondinId}&from_scan=true`;
     }
 
     // ========== GEOLOCALIZACIÓN ==========

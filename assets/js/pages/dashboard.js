@@ -177,6 +177,7 @@ const ComunicadosModule = (() => {
 
         try {
             const formData = new FormData(form);
+            // **IMPORTANTE**: Llama a la validación de fecha del lado del cliente
             validateExpirationDate(formData.get('fecha_expiracion'));
 
             const response = await fetch(endpoint, {
@@ -218,25 +219,30 @@ const ComunicadosModule = (() => {
             throw new Error('La fecha de expiración es requerida.');
         }
 
-        const fechaExpiracion = new Date(expirationDate + 'T23:59:59');
+
+        // Esto fuerza a new Date() a interpretarla en la zona horaria local desde el inicio.
+        const fechaExpiracion = new Date(expirationDate + 'T00:00:00');
+        fechaExpiracion.setHours(0, 0, 0, 0);
+
+        // Obtener la fecha actual y normalizarla al inicio del día en la zona horaria local
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
 
+        // Si la fecha de expiración es estrictamente anterior al día de hoy normalizado
         if (fechaExpiracion < hoy) {
-            throw new Error('La fecha de expiración no puede ser anterior a hoy');
+            throw new Error('La fecha de expiración no puede ser anterior a la fecha actual.');
         }
     };
+
 
     // Formatear fecha
     const formatDate = (dateString) => {
         if (!dateString) return '';
-        const date = new Date(dateString);
-        const offset = date.getTimezoneOffset() * 60 * 1000;
-        const localDate = new Date(date.getTime() + offset);
-
-        const day = String(localDate.getDate()).padStart(2, '0');
-        const month = String(localDate.getMonth() + 1).padStart(2, '0');
-        const year = localDate.getFullYear();
+        // Asegura que se interprete como el inicio del día en la zona horaria local
+        const date = new Date(dateString + 'T00:00:00');
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
         return `${day}/${month}/${year}`;
     };
 
@@ -538,68 +544,76 @@ const ComunicadosModule = (() => {
         const estadoTexto = comunicado.estado_calculado.charAt(0).toUpperCase() + comunicado.estado_calculado.slice(1);
 
         return `
-        <article class="comunicado card h-100 shadow-sm hover-shadow">
-            <div class="card-body d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <h5 class="card-title fs-6 mb-0">${comunicado.titulo}</h5>
-                    <span class="badge ${getPrioridadBadgeClass(comunicado.prioridad)}">
-                        ${comunicado.prioridad.charAt(0).toUpperCase() + comunicado.prioridad.slice(1)}
-                    </span>
+            <article class="comunicado card h-100 shadow-sm hover-shadow">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+
+                        <h5 class="card-title fs-6 mb-0">${comunicado.titulo}</h5>
+
+                        <div class="d-flex align-items-center"> 
+
+                            <span class="badge ${getEstadoBadgeClass(comunicado.estado_calculado)} me-1">
+                                ${estadoTexto}
+                            </span>
+
+                            <span class="badge ${getPrioridadBadgeClass(comunicado.prioridad)}">
+                                ${comunicado.prioridad.charAt(0).toUpperCase() + comunicado.prioridad.slice(1)}
+                            </span>
+
+                        </div>
+                        
+                    </div>
+                    
+                    <p class="card-text text-muted small">
+                        Publicado por: <span>${comunicado.autor}</span>
+                    </p>
+
+                    <p class="card-text flex-grow-1 pt-2">${comunicado.contenido.substring(0, 100)}${comunicado.contenido.length > 100 ? '...' : ''}</p>
                 </div>
                 
-                <p class="mb-1">
-                    <span class="badge ${getEstadoBadgeClass(comunicado.estado_calculado)}">${estadoTexto}</span>
-                </p>
-
-                <p class="card-text text-muted small my-2">
-                    Autor: <span>${comunicado.autor}</span>
-                </p>
-
-                <p class="card-text flex-grow-1 pt-2">${comunicado.contenido.substring(0, 100)}${comunicado.contenido.length > 100 ? '...' : ''}</p>
-            </div>
-            
-            <div class="card-footer bg-transparent border-0 pt-0">
-                <div class="d-flex justify-content-between align-items-center w-100">
-                    <p class="card-text text-muted small my-0">
-                        Publicado: ${formatDate(comunicado.fecha_publicacion)} - 
-                        Expira: ${formatDate(comunicado.fecha_expiracion)}
-                    </p>
-                    <button class="btn btn-sm btn-outline-secondary btn-view" data-comunicado-id="${comunicado.id_comunicado}">Ver</button>
+                <div class="card-footer bg-transparent border-0 pt-0">
+                    <div class="d-flex justify-content-between align-items-center w-100">
+                        <p class="card-text text-muted small my-0">
+                            Publicado: ${formatDate(comunicado.fecha_publicacion)} - 
+                            Expira: ${formatDate(comunicado.fecha_expiracion)}
+                        </p>
+                        <button class="btn btn-sm btn-outline-secondary btn-view" data-comunicado-id="${comunicado.id_comunicado}">Ver</button>
+                    </div>
                 </div>
-            </div>
-        </article>
+            </article>
         `;
     };
 
     const createMainComunicadoHTML = (comunicado) => {
         const estadoTexto = comunicado.estado_calculado.charAt(0).toUpperCase() + comunicado.estado_calculado.slice(1);
+        const contenidoCorto = comunicado.contenido.substring(0, 500) + (comunicado.contenido.length > 500 ? '...' : '');
 
         return `
-            <div class="card-body">
-                <header>
-                    <h5 class="card-title fw-semibold h5 h4-md">${comunicado.titulo}</h5>
-                    <span class="badge ${getEstadoBadgeClass(comunicado.estado_calculado)} mb-2">${estadoTexto}</span>
-                    <span class="badge ${getPrioridadBadgeClass(comunicado.prioridad)} mb-2 ms-2">
-                        ${comunicado.prioridad.charAt(0).toUpperCase() + comunicado.prioridad.slice(1)}
-                    </span>
-                </header>
-                
-                <p class="small text-muted mb-0">Autor: ${comunicado.autor}</p>
+        <div class="card-body">
+            <header>
+                <h5 class="card-title fw-semibold h5 h4-md">${comunicado.titulo}</h5>
+                <span class="badge ${getEstadoBadgeClass(comunicado.estado_calculado)} mb-2">${estadoTexto}</span>
+                <span class="badge ${getPrioridadBadgeClass(comunicado.prioridad)} mb-2">
+                    ${comunicado.prioridad.charAt(0).toUpperCase() + comunicado.prioridad.slice(1)}
+                </span>
+            </header>
+            
+            <p class="small text-muted mb-0">Publicado por: ${comunicado.autor}</p>
 
-                <div class="contenido-comunicado py-2">
-                    <div class="row align-items-center">
-                        <div class="col-12">
-                            <p class="card-text small small-md">${comunicado.contenido.substring(0, 500)}${comunicado.contenido.length > 500 ? '...' : ''}</p>
-                            ${comunicado.contenido.length > 500 ? `<div class="d-flex mt-3"><button class="btn btn-outline-primary btn-sm btn-read-more" data-comunicado-id="${comunicado.id_comunicado}">Leer más</button></div>` : ''}
-                        </div>
+            <div class="contenido-comunicado py-3">
+                <div class="row align-items-center">
+                    <div class="col-12">
+                        <p class="card-text small small-md contenido-con-saltos">${contenidoCorto}</p>
+                        ${comunicado.contenido.length > 500 ? `<div class="d-flex mt-3"><button class="btn btn-outline-primary btn-sm btn-read-more" data-comunicado-id="${comunicado.id_comunicado}">Leer más</button></div>` : ''}
                     </div>
                 </div>
-
-                <footer class="d-flex justify-content-between align-items-center pt-3 border-top mt-3">
-                    <span class="fechaComunicado text-muted small">Publicado: <span class="fw-semibold">${formatDate(comunicado.fecha_publicacion)}</span></span>
-                </footer>
             </div>
-        `;
+
+            <footer class="d-flex justify-content-between align-items-center pt-2 border-top">
+                <span class="fechaComunicado text-muted small">Publicado: <span class="fw-semibold">${formatDate(comunicado.fecha_publicacion)}</span></span>
+            </footer>
+        </div>
+    `;
     };
 
     // ======================
@@ -614,9 +628,14 @@ const ComunicadosModule = (() => {
 
             if (data.success && data.comunicado) {
                 const comunicado = data.comunicado;
+                const contenidoElement = document.getElementById('viewComunicadoContenido');
 
+                // Configuramos el contenido y la clase
+                contenidoElement.textContent = comunicado.contenido;
+                contenidoElement.className = 'lead text-dark py-2 contenido-con-saltos';
+
+                // Resto de la configuración del modal
                 document.getElementById('viewComunicadoTitulo').textContent = comunicado.titulo;
-                document.getElementById('viewComunicadoContenido').textContent = comunicado.contenido;
                 document.getElementById('viewComunicadoFechaPublicacion').textContent = formatDate(comunicado.fecha_publicacion);
                 document.getElementById('viewComunicadoFechaExpiracion').textContent = formatDate(comunicado.fecha_expiracion);
                 document.getElementById('viewComunicadoAutor').textContent = comunicado.autor;
@@ -630,6 +649,16 @@ const ComunicadosModule = (() => {
                 const estadoBadge = document.getElementById('viewComunicadoEstado');
                 estadoBadge.textContent = comunicado.estado_calculado.charAt(0).toUpperCase() + comunicado.estado_calculado.slice(1);
                 estadoBadge.className = `badge ${getEstadoBadgeClass(comunicado.estado_calculado)}`;
+
+                // Ocultar/mostrar botón de edición según el autor
+                const editButton = document.getElementById('btnEditarDesdeVerModal');
+                if (editButton) {
+                    if (window.currentUserId && comunicado.empleado_id == window.currentUserId) {
+                        editButton.style.display = 'block';
+                    } else {
+                        editButton.style.display = 'none';
+                    }
+                }
 
                 document.getElementById('verComunicadoModal').dataset.comunicadoId = comunicado.id_comunicado;
                 bsViewModal.show();

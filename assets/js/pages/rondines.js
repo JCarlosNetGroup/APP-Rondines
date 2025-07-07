@@ -120,20 +120,120 @@ const NotificationModule = (() => {
 // =============================================
 // * MÓDULO DE UTILIDADES
 // =============================================
+
 const UtilsModule = (() => {
+ 
     const getEstadoBadgeClass = (estado) => {
-        const estadoLower = estado.toLowerCase();
-        if (estadoLower.includes('activa')) return 'bg-success';
-        if (estadoLower.includes('suspendida')) return 'bg-secondary';
-        if (estadoLower.includes('bloqueada')) return 'bg-danger';
-        return 'bg-primary';
+        if (!estado) return 'bg-secondary';
+        
+        const estadoLower = estado.toString().toLowerCase().trim();
+        
+        // Estados para rondines
+        switch (estadoLower) {
+            case 'activa':
+            case 'activo':
+                return 'bg-success';;
+            case 'suspendida':
+                return 'bg-warning text-dark';
+            case 'cancelada':
+            case 'bloqueada':
+                return 'bg-danger';
+            default:
+                return 'bg-primary';
+        }
     };
 
-    const formatTime = (timestamp) => {
-        return timestamp ? timestamp.split(' ')[1].substring(0, 5) : '--:--';
+   
+    const formatTime = (timestamp, defaultValue = '--:--') => {
+        if (!timestamp) return defaultValue;
+        
+        try {
+            // Si es un objeto Date
+            if (timestamp instanceof Date) {
+                return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+            
+            // Si es un string
+            if (typeof timestamp === 'string') {
+                // Si ya está en formato HH:MM
+                if (/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(timestamp)) {
+                    return timestamp;
+                }
+                
+                // Si es un timestamp SQL (YYYY-MM-DD HH:MM:SS)
+                if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(timestamp)) {
+                    return timestamp.split(' ')[1].substring(0, 5);
+                }
+                
+                // Si es un timestamp ISO
+                if (timestamp.includes('T')) {
+                    const date = new Date(timestamp);
+                    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+            }
+            
+            return defaultValue;
+        } catch (error) {
+            console.error('Error al formatear tiempo:', error);
+            return defaultValue;
+        }
     };
 
-    return { getEstadoBadgeClass, formatTime };
+
+    const normalizeRutaData = (ruta) => {
+        return {
+            id_rondin: ruta.id_rondin || 0,
+            nombre: ruta.nombre || 'Sin nombre',
+            descripcion: ruta.descripcion || '',
+            hora_inicio: ruta.hora_inicio || null,
+            hora_fin: ruta.hora_fin || null,
+            estado: ruta.estado || 'Sin estado',
+            ubicaciones: Array.isArray(ruta.ubicaciones) ? ruta.ubicaciones : []
+        };
+    };
+
+ 
+    const normalizeUbicacionData = (ubicacion) => {
+        return {
+            id: ubicacion.id || 0,
+            nombre: ubicacion.nombre || 'Sin nombre',
+            descripcion: ubicacion.descripcion || '',
+            latitud: ubicacion.latitud || 0,
+            longitud: ubicacion.longitud || 0,
+            estado: ubicacion.estado || 'Sin estado',
+            orden: ubicacion.orden || 0
+        };
+    };
+
+    const formatDate = (date, locale = 'es-MX') => {
+        if (!date) return '--/--/----';
+        
+        try {
+            const dateObj = date instanceof Date ? date : new Date(date);
+            return dateObj.toLocaleDateString(locale, {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+        } catch (error) {
+            console.error('Error al formatear fecha:', error);
+            return '--/--/----';
+        }
+    };
+
+    const capitalize = (str) => {
+        if (!str || typeof str !== 'string') return '';
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    };
+
+    return {
+        getEstadoBadgeClass,
+        formatTime,
+        normalizeRutaData,
+        normalizeUbicacionData,
+        formatDate,
+        capitalize
+    };
 })();
 
 // =============================================
@@ -162,51 +262,55 @@ const RutasModule = (() => {
     };
 
     const renderRutasTable = (data) => {
-        const tableBody = document.querySelector("#data-table tbody");
-        const fragment = document.createDocumentFragment();
+    const tableBody = document.querySelector("#data-table tbody");
+    const fragment = document.createDocumentFragment();
 
-        if (!data.rutas || data.rutas.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="7" class="text-center">No hay rutas registradas</td></tr>`;
-            return;
-        }
+    if (!data.rutas || data.rutas.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="7" class="text-center">No hay rutas registradas</td></tr>`;
+        return;
+    }
 
-        data.rutas.forEach((ruta) => {
-            const tr = document.createElement("tr");
-            tr.dataset.rutaId = ruta.id_rondin;
+    data.rutas.forEach((ruta) => {
+        const tr = document.createElement("tr");
+        tr.dataset.rutaId = ruta.id_rondin;
 
-            tr.innerHTML = `
-                <td>${ruta.id_rondin}</td>
-                <td>${ruta.nombre}</td>
-                <td>${ruta.hora_inicio || '--:--'}</td>
-                <td>${ruta.hora_fin || '--:--'}</td>
-                <td>${ruta.estado}</td>
-                <td>
-                    <a class="edit" data-bs-toggle="modal" data-bs-target="#editRuta"
-                       data-ruta-id="${ruta.id_rondin}"
-                       data-ruta-nombre="${ruta.nombre}"
-                       data-ruta-descripcion="${ruta.descripcion}"
-                       data-ruta-hora-inicio="${ruta.hora_inicio}"
-                       data-ruta-hora-fin="${ruta.hora_fin}"
-                       data-ruta-estado="${ruta.estado}">
-                        <i class="bi bi-pencil-square"></i>
-                    </a>
-                </td>
-            `;
+        tr.innerHTML = `
+            <td>${ruta.id_rondin}</td>
+            <td>${ruta.nombre}</td>
+            <td>${UtilsModule.formatTime(ruta.hora_inicio)}</td>
+            <td>${UtilsModule.formatTime(ruta.hora_fin)}</td>
+            <td>
+                <span class="badge ${UtilsModule.getEstadoBadgeClass(ruta.estado)}">
+                    ${ruta.estado}
+                </span>
+            </td>
+            <td>
+                <a class="edit" data-bs-toggle="modal" data-bs-target="#editRuta"
+                   data-ruta-id="${ruta.id_rondin}"
+                   data-ruta-nombre="${ruta.nombre}"
+                   data-ruta-descripcion="${ruta.descripcion}"
+                   data-ruta-hora-inicio="${ruta.hora_inicio}"
+                   data-ruta-hora-fin="${ruta.hora_fin}"
+                   data-ruta-estado="${ruta.estado}">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
+            </td>
+        `;
 
-            tr.addEventListener('click', () => {
-                document.querySelectorAll("#data-table tbody tr").forEach(row => {
-                    row.classList.remove('table-active');
-                });
-                tr.classList.add('table-active');
-                showRouteOnMap(ruta.id_rondin);
+        tr.addEventListener('click', () => {
+            document.querySelectorAll("#data-table tbody tr").forEach(row => {
+                row.classList.remove('table-active');
             });
-
-            fragment.appendChild(tr);
+            tr.classList.add('table-active');
+            showRouteOnMap(ruta.id_rondin);
         });
 
-        tableBody.innerHTML = "";
-        tableBody.appendChild(fragment);
-    };
+        fragment.appendChild(tr);
+    });
+
+    tableBody.innerHTML = "";
+    tableBody.appendChild(fragment);
+};
 
     const showRouteOnMap = async (rutaId) => {
         try {
