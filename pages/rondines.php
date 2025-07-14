@@ -193,13 +193,12 @@ include_once '../controller/ValidarSesion.php'
 
                                     <!-- Columna de ubicaciones -->
                                     <div class="col-md-6">
-                                        <div class="card h-100">
+                                        <div class="card d-flex flex-column">
                                             <div class="card-header d-flex justify-content-center">
                                                 <h6 class="card-title mb-0"><i class="bi bi-geo-alt me-2"></i>Ubicaciones</h6>
-
                                             </div>
                                             <div class="card-body p-0">
-                                                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                                                     <table class="table table-hover table-striped text-center mb-0">
                                                         <thead class="sticky-top">
                                                             <tr>
@@ -306,12 +305,12 @@ include_once '../controller/ValidarSesion.php'
 
                                     <!-- Columna de ubicaciones -->
                                     <div class="col-md-6">
-                                        <div class="card h-100">
+                                        <div class="card d-flex flex-column">
                                             <div class="card-header d-flex justify-content-center">
                                                 <h6 class="card-title mb-0"><i class="bi bi-geo-alt me-2"></i>Ubicaciones</h6>
                                             </div>
                                             <div class="card-body p-0">
-                                                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                                                     <table class="table table-hover table-striped text-center mb-0">
                                                         <thead class="sticky-top">
                                                             <tr>

@@ -1,7 +1,7 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // ========== CONSTANTES DE CONFIGURACIÓN ==========
     const CONFIG = {
-        MAX_DISTANCE_METERS: 5000,
+        MAX_DISTANCE_METERS: 2000,
         QR_SCANNER_CONFIG: {
             formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
             experimentalFeatures: { useBarCodeDetectorIfSupported: true },
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!ubicacion) return;
 
         const isEnabled = index === 0 ||
-                         (index > 0 && state.ubicacionesEscaneadas.includes(state.ubicacionesData[index - 1].id));
+            (index > 0 && state.ubicacionesEscaneadas.includes(state.ubicacionesData[index - 1].id));
         const isScanned = state.ubicacionesEscaneadas.includes(ubicacion.id);
 
         if (isEnabled && !isScanned) {
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         state.ubicacionesData.forEach((ubicacion, index) => {
             const isEnabled = index === 0 ||
-                             (index > 0 && state.ubicacionesEscaneadas.includes(state.ubicacionesData[index - 1].id));
+                (index > 0 && state.ubicacionesEscaneadas.includes(state.ubicacionesData[index - 1].id));
             const isScanned = state.ubicacionesEscaneadas.includes(ubicacion.id);
 
             const item = document.createElement('div');
@@ -369,7 +369,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function redirectToReportForm() {
         const rondinId = getRondinId();
-        window.location.href = `/Centinela/pages/formReporte.php?id_ubicacion=${state.currentUbicacion.id}&id_rondin=${rondinId}&from_scan=true`;
+        window.location.href = `../pages/formReporte.php?id_ubicacion=${state.currentUbicacion.id}&id_rondin=${rondinId}&from_scan=true`;
     }
 
     // ========== GEOLOCALIZACIÓN ==========
@@ -402,15 +402,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========== CÁLCULO DE DISTANCIA ==========
     function calculateDistance(lat1, lon1, lat2, lon2) {
         const R = 6371e3; // Radio de la Tierra en metros
-        const φ1 = lat1 * Math.PI/180;
-        const φ2 = lat2 * Math.PI/180;
-        const Δφ = (lat2 - lat1) * Math.PI/180;
-        const Δλ = (lon2 - lon1) * Math.PI/180;
+        const φ1 = lat1 * Math.PI / 180;
+        const φ2 = lat2 * Math.PI / 180;
+        const Δφ = (lat2 - lat1) * Math.PI / 180;
+        const Δλ = (lon2 - lon1) * Math.PI / 180;
 
-        const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-                  Math.cos(φ1) * Math.cos(φ2) *
-                  Math.sin(Δλ/2) * Math.sin(Δλ/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
         return R * c;
     }

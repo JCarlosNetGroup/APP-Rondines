@@ -66,7 +66,7 @@
                         </button>
                         <canvas id="canvas-main" style="display: none;"></canvas>
                         <div id="photo-preview-container" class="mt-2">
-                            <img id="photo-preview" src="#" alt="Previsualización de la foto" class="img-fluid rounded" style="display: none; max-height: 200px; width:409px;">
+                            <img id="photo-preview" src="#" alt="Previsualización de la foto" class="img-fluid rounded" style="display: none; max-height: 500px; width:409px;">
                         </div>
                         <input type="hidden" id="foto" name="foto">
                     </div>
@@ -146,7 +146,7 @@
                                 </button>
                                 <canvas id="canvas-modal" style="display: none;"></canvas>
                                 <div id="incidencia-photo-preview-container" class="mt-2">
-                                    <img id="incidencia-photo-preview" src="#" alt="Previsualización de la foto de incidencia" class="img-fluid rounded" style="display: none; max-height: 200px; width:409px;">
+                                    <img id="incidencia-photo-preview" src="#" alt="Previsualización de la foto de incidencia" class="img-fluid rounded" style="display: none; max-height: 500px; width:409px;">
                                 </div>
                                 <input type="hidden" id="foto-incidencia" name="foto_incidencia">
                             </div>

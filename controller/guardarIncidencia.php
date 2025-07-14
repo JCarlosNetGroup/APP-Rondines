@@ -1,6 +1,6 @@
 <?php
 require_once '../includes/dbConnection.php';
-require_once '../includes/ValidarSesion.php';
+require_once '../controller/ValidarSesion.php';
 
 header('Content-Type: application/json');
 

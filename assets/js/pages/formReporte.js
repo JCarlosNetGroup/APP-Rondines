@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // --- Constantes y Estado Inicial ---
     const API_ENDPOINTS = {
         GET_UBICACION: '../controller/geUbicacionForm.php',
@@ -80,14 +80,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 warning: 'Advertencia',
                 info: 'Información'
             };
-            
+
             const iconTypes = {
                 error: 'error',
                 success: 'success',
                 warning: 'warning',
                 info: 'info'
             };
-            
+
             return Swal.fire({
                 title: title || defaultTitles[type] || 'Mensaje',
                 text: message,
@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     Utils.showAlert("Tu navegador no soporta el acceso a la cámara o esta función no está disponible.");
                     return resolve(false);
                 }
-                
+
                 if (navigator.permissions) {
                     navigator.permissions.query({ name: 'camera' })
                         .then(permissionStatus => {
@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             } catch (error) {
                 console.warn("Intento inicial fallido, probando constraints más básicas:", error);
-                
+
                 try {
                     const basicConstraints = {
                         video: {
@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         },
                         audio: false
                     };
-                    
+
                     const stream = await navigator.mediaDevices.getUserMedia(basicConstraints);
                     currentStream = stream;
                     videoElement.srcObject = stream;
@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
         handleCameraError: (error) => {
             console.error("Error al acceder a la cámara:", error);
             let errorMessage = "No se pudo acceder a la cámara.";
-            
+
             if (error.name === 'NotAllowedError') {
                 errorMessage = "Permiso denegado. Por favor, permite el acceso a la cámara en la configuración de tu navegador.";
             } else if (error.name === 'NotFoundError') {
@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (error.name === 'OverconstrainedError') {
                 errorMessage = "La configuración solicitada no es compatible con tu dispositivo.";
             }
-            
+
             Utils.showAlert(errorMessage);
         }
     };
@@ -369,16 +369,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 Elements.reporteForm.dataset.reporteId = data.reporte_id;
                 reporteGuardado = true;
-                
+
                 UIManager.updateUIAfterReporteSaved();
                 UIManager.updateReporteSubmitButton(true);
 
                 await Utils.showAlert('¡Reporte guardado exitosamente! Ahora puedes agregar incidencias si es necesario o finalizar.', 'success');
 
                 // Redirigir con parámetro saved=true solo si venimos del escaneo
-                if (fromScan) {
-                    window.location.href = `ubicacionesRuta.php?id_rondin=${rondinId}&saved=true&id_ubicacion=${ubicacionId}`;
-                }
+                // if (fromScan) {
+                //     window.location.href = `ubicacionesRuta.php?id_rondin=${rondinId}&saved=true&id_ubicacion=${ubicacionId}`;
+                // }
 
             } catch (error) {
                 console.error('Error al guardar reporte:', error);
@@ -435,8 +435,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     UIManager.resetIncidenciaForm();
                     Elements.incidenciaModal.hide();
 
+                    // Actualizar UI como completado
+                    UIManager.updateUIAfterReporteSaved();
+                    UIManager.updateReporteSubmitButton(true);
+
                     setTimeout(() => {
-                        window.location.href = `ubicacionesRuta.php?id_rondin=${rondinId}`;
+                        window.location.href = `ubicacionesRuta.php?id_rondin=${rondinId}&saved=true&id_ubicacion=${ubicacionId}`;
                     }, 1000);
                 } else {
                     throw new Error(data.message || 'Error desconocido al guardar incidencia');
@@ -494,7 +498,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         confirmText: 'Sí, salir',
                         cancelText: 'Cancelar'
                     });
-                    
+
                     if (result.isConfirmed) {
                         window.history.back();
                     }
@@ -505,7 +509,7 @@ document.addEventListener('DOMContentLoaded', function() {
             Elements.startCameraMain.addEventListener('click', async () => {
                 const hasSupport = await Compatibility.checkCameraSupport();
                 if (!hasSupport) return;
-                
+
                 try {
                     await CameraModule.initCamera(Elements.videoMain, false);
                     Utils.show(Elements.videoMain);
@@ -521,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function() {
             Elements.startCameraFront.addEventListener('click', async () => {
                 const hasSupport = await Compatibility.checkCameraSupport();
                 if (!hasSupport) return;
-                
+
                 try {
                     await CameraModule.initCamera(Elements.videoMain, true);
                     Utils.show(Elements.videoMain);
@@ -547,7 +551,7 @@ document.addEventListener('DOMContentLoaded', function() {
             Elements.startCameraModalBack.addEventListener('click', async () => {
                 const hasSupport = await Compatibility.checkCameraSupport();
                 if (!hasSupport) return;
-                
+
                 try {
                     await CameraModule.initCamera(Elements.videoModal, false);
                     Utils.show(Elements.videoModal);
@@ -563,7 +567,7 @@ document.addEventListener('DOMContentLoaded', function() {
             Elements.startCameraModalFront.addEventListener('click', async () => {
                 const hasSupport = await Compatibility.checkCameraSupport();
                 if (!hasSupport) return;
-                
+
                 try {
                     await CameraModule.initCamera(Elements.videoModal, true);
                     Utils.show(Elements.videoModal);
@@ -590,7 +594,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 EventHandlers.resetIncidenciaCameraUI();
             });
 
-            Elements.incidenciaModal._element.addEventListener('show.bs.modal', function() {
+            Elements.incidenciaModal._element.addEventListener('show.bs.modal', function () {
                 if (reporteGuardado && Elements.reporteForm.dataset.reporteId) {
                     Elements.incidenciaReporteId.value = Elements.reporteForm.dataset.reporteId;
                 }

@@ -13,8 +13,6 @@ function init() {
     }
 }
 
-
-
 //* Configuración de los controles de búsqueda y filtro
 function setupSearchAndFilter() {
     const inputBusqueda = document.getElementById('inputBusqueda');
@@ -37,8 +35,6 @@ function setupSearchAndFilter() {
     }
 }
 
-
-
 //* Función debounce para limitar la frecuencia de ejecución
 function debounce(func, wait) {
     let timeout;
@@ -52,17 +48,15 @@ function debounce(func, wait) {
     };
 }
 
-
-
-//* Función que obtiene los registros del servidor con filtros
+//* Función que obtiene los registros del servidor con filtros (ANTI-CACHÉ)
 function fetchTableLocations(searchTerm = '', estado = '') {
-    let url = `../controller/tableLocation.php`;
+    let url = `../controller/tableLocation.php?_=${Date.now()}`; // Timestamp para evitar caché
     const params = new URLSearchParams();
 
     if (searchTerm) params.append('search', searchTerm);
     if (estado) params.append('estado', estado);
 
-    if (params.toString()) url += `?${params.toString()}`;
+    if (params.toString()) url += `&${params.toString()}`;
 
     fetch(url)
         .then((response) => response.json())
@@ -152,10 +146,10 @@ function getBadgeClass(estado) {
             return 'bg-warning text-dark';
         case 'bloqueada':
             return 'bg-danger';
+        default:
+            return 'bg-secondary';
     }
 }
-
-
 
 //* Función para agregar nueva ubicación
 function formAddLocation() {
@@ -174,12 +168,10 @@ function formAddLocation() {
         form.addEventListener("submit", async function (event) {
             event.preventDefault();
             const submitBtn = form.querySelector('button[type="submit"]');
-            submitBtn.disabled = true; // Deshabilita el botón para evitar múltiples envíos
+            submitBtn.disabled = true;
 
             try {
                 const formData = new FormData(this);
-
-                // Envía los datos al servidor
                 const response = await fetch('../controller/addLocation.php', {
                     method: 'POST',
                     body: formData
@@ -188,11 +180,8 @@ function formAddLocation() {
 
                 if (!data.success) throw new Error(data.message || 'Error al agregar la ubicación');
 
-                // Prepara datos para generar el QR (solo se necesita el ID ahora)
-                const qrData = {
-                    id: data.id, // El ID de la ubicación recién creada
-
-                };
+                // Prepara datos para generar el QR
+                const qrData = { id: data.id };
 
                 // Genera y guarda el QR
                 const qrImageUrl = await generateQR(qrData);
@@ -203,17 +192,16 @@ function formAddLocation() {
                 await showSuccess('Ubicación guardada correctamente');
                 bsModal.hide();
                 form.reset();
-                fetchTableLocations();
+                fetchTableLocations(); // Recarga datos frescos
 
             } catch (error) {
                 await showError(error.message || 'Error en el proceso');
             } finally {
-                submitBtn.disabled = false; // Rehabilita el botón
+                submitBtn.disabled = false;
             }
         });
     }
 }
-
 
 //* Función para editar ubicación
 function formEditLocation() {
@@ -237,7 +225,7 @@ function formEditLocation() {
             const estado = button.getAttribute('data-ubicacion-estado');
             const qrPath = button.getAttribute('data-ubicacion-qrpath') || '';
 
-            // Rellena los campos del formulario con los datos
+            // Rellena los campos del formulario
             document.getElementById('edit-id').value = id || '';
             document.getElementById('edit-nombre').value = nombre || '';
             document.getElementById('edit-descripcion').value = descripcion || '';
@@ -249,7 +237,7 @@ function formEditLocation() {
             const viewLocationLink = document.querySelector('#editLocation .linkMaps');
             if (latitud && longitud) {
                 viewLocationLink.href = `https://www.google.com/maps?q=${latitud},${longitud}`;
-                viewLocationLink.onclick = null; // Elimina cualquier evento previo
+                viewLocationLink.onclick = null;
             } else {
                 viewLocationLink.href = '#';
                 viewLocationLink.onclick = function (e) {
@@ -332,7 +320,7 @@ function formEditLocation() {
                 });
 
                 bsModal.hide();
-                fetchTableLocations();
+                fetchTableLocations(); // Recarga datos frescos
 
             } catch (error) {
                 console.error('Error al editar ubicación:', error);
@@ -351,7 +339,6 @@ function formEditLocation() {
         document.getElementById('downloadQR')?.addEventListener('click', function () {
             const qrImg = document.querySelector('#qrPreview img');
             if (qrImg) {
-                // Crea un enlace temporal para descargar la imagen
                 const link = document.createElement('a');
                 link.href = qrImg.src;
                 link.download = `qr_ubicacion_${document.getElementById('edit-id').value}.png`;
@@ -368,11 +355,7 @@ function formEditLocation() {
     }
 }
 
-
-
 //* Funciones auxiliares
-
-// Muestra una alerta de error con opción para recargar la página
 function showErrorAlert() {
     Swal.fire({
         title: 'Error',
@@ -387,16 +370,13 @@ function showErrorAlert() {
     });
 }
 
-// Genera un código QR a partir de los datos proporcionados
 async function generateQR(data) {
     return new Promise((resolve, reject) => {
-        // Se asegura de que 'data' contenga un 'id' válido
         if (!data || data.id === undefined || data.id === null) {
             reject(new Error('ID de ubicación no proporcionado para generar QR.'));
             return;
         }
 
-        // Se codifica solo el ID de la ubicación en el QR
         QRCode.toDataURL(data.id.toString(), {
             width: 300,
             margin: 2,
@@ -408,7 +388,6 @@ async function generateQR(data) {
     });
 }
 
-// Guarda el QR en el servidor
 async function saveQR(id, imageData) {
     const response = await fetch('../controller/saveQR.php', {
         method: 'POST',
@@ -418,7 +397,6 @@ async function saveQR(id, imageData) {
     return await response.json();
 }
 
-// Muestra un mensaje de éxito
 function showSuccess(message) {
     return Swal.fire({
         icon: 'success',
@@ -429,7 +407,6 @@ function showSuccess(message) {
     });
 }
 
-// Muestra un mensaje de error
 function showError(message) {
     return Swal.fire({
         icon: 'error',

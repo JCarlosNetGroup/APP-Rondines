@@ -17,21 +17,6 @@ const API_ENDPOINTS = {
 };
 
 // =============================================
-// * FUNCIONES UTILITARIAS
-// =============================================
-function debounce(func, wait) {
-    let timeout;
-    return function () {
-        const context = this;
-        const args = arguments;
-        clearTimeout(timeout);
-        timeout = setTimeout(() => {
-            func.apply(context, args);
-        }, wait);
-    };
-}
-
-// =============================================
 // * MÓDULO DEL MAPA
 // =============================================
 const MapModule = (() => {
@@ -120,19 +105,16 @@ const NotificationModule = (() => {
 // =============================================
 // * MÓDULO DE UTILIDADES
 // =============================================
-
 const UtilsModule = (() => {
- 
     const getEstadoBadgeClass = (estado) => {
         if (!estado) return 'bg-secondary';
-        
+
         const estadoLower = estado.toString().toLowerCase().trim();
-        
-        // Estados para rondines
+
         switch (estadoLower) {
             case 'activa':
             case 'activo':
-                return 'bg-success';;
+                return 'bg-success';
             case 'suspendida':
                 return 'bg-warning text-dark';
             case 'cancelada':
@@ -143,42 +125,35 @@ const UtilsModule = (() => {
         }
     };
 
-   
     const formatTime = (timestamp, defaultValue = '--:--') => {
         if (!timestamp) return defaultValue;
-        
+
         try {
-            // Si es un objeto Date
             if (timestamp instanceof Date) {
                 return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             }
-            
-            // Si es un string
+
             if (typeof timestamp === 'string') {
-                // Si ya está en formato HH:MM
                 if (/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(timestamp)) {
                     return timestamp;
                 }
-                
-                // Si es un timestamp SQL (YYYY-MM-DD HH:MM:SS)
+
                 if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(timestamp)) {
                     return timestamp.split(' ')[1].substring(0, 5);
                 }
-                
-                // Si es un timestamp ISO
+
                 if (timestamp.includes('T')) {
                     const date = new Date(timestamp);
                     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 }
             }
-            
+
             return defaultValue;
         } catch (error) {
             console.error('Error al formatear tiempo:', error);
             return defaultValue;
         }
     };
-
 
     const normalizeRutaData = (ruta) => {
         return {
@@ -192,7 +167,6 @@ const UtilsModule = (() => {
         };
     };
 
- 
     const normalizeUbicacionData = (ubicacion) => {
         return {
             id: ubicacion.id || 0,
@@ -207,7 +181,7 @@ const UtilsModule = (() => {
 
     const formatDate = (date, locale = 'es-MX') => {
         if (!date) return '--/--/----';
-        
+
         try {
             const dateObj = date instanceof Date ? date : new Date(date);
             return dateObj.toLocaleDateString(locale, {
@@ -226,13 +200,23 @@ const UtilsModule = (() => {
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     };
 
+     const debounce = (func, delay) => {
+        let timeout;
+        return function(...args) {
+            const context = this;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(context, args), delay);
+        };
+    };
+
     return {
         getEstadoBadgeClass,
         formatTime,
         normalizeRutaData,
         normalizeUbicacionData,
         formatDate,
-        capitalize
+        capitalize,
+        debounce
     };
 })();
 
@@ -240,16 +224,18 @@ const UtilsModule = (() => {
 // * MÓDULO DE RUTAS
 // =============================================
 const RutasModule = (() => {
-    let selectedUbicacionesOrderEdit = [];
     let rutasData = [];
 
     const fetchTableRutas = async (searchTerm = '', estado = undefined) => {
         try {
-            const url = new URL(API_ENDPOINTS.rutas, window.location.origin);
-            if (searchTerm) url.searchParams.append('search', searchTerm);
-            if (estado !== undefined) url.searchParams.append('estado', estado);
 
-            const response = await fetch(url);
+            let url = new URL(API_ENDPOINTS.rutas, window.location.origin);
+            url.searchParams.append('_', Date.now()); // Añadimos el timestamp para evitar caché
+
+            if (searchTerm) url.searchParams.append('search', encodeURIComponent(searchTerm));
+            if (estado !== undefined) url.searchParams.append('estado', encodeURIComponent(estado));
+
+            const response = await fetch(url.toString()); // Convertimos el objeto URL a string para fetch
             if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
 
             const data = await response.json();
@@ -262,55 +248,55 @@ const RutasModule = (() => {
     };
 
     const renderRutasTable = (data) => {
-    const tableBody = document.querySelector("#data-table tbody");
-    const fragment = document.createDocumentFragment();
+        const tableBody = document.querySelector("#data-table tbody");
+        const fragment = document.createDocumentFragment();
 
-    if (!data.rutas || data.rutas.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="7" class="text-center">No hay rutas registradas</td></tr>`;
-        return;
-    }
+        if (!data.rutas || data.rutas.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="7" class="text-center">No hay rutas registradas</td></tr>`;
+            return;
+        }
 
-    data.rutas.forEach((ruta) => {
-        const tr = document.createElement("tr");
-        tr.dataset.rutaId = ruta.id_rondin;
+        data.rutas.forEach((ruta) => {
+            const tr = document.createElement("tr");
+            tr.dataset.rutaId = ruta.id_rondin;
 
-        tr.innerHTML = `
-            <td>${ruta.id_rondin}</td>
-            <td>${ruta.nombre}</td>
-            <td>${UtilsModule.formatTime(ruta.hora_inicio)}</td>
-            <td>${UtilsModule.formatTime(ruta.hora_fin)}</td>
-            <td>
-                <span class="badge ${UtilsModule.getEstadoBadgeClass(ruta.estado)}">
-                    ${ruta.estado}
-                </span>
-            </td>
-            <td>
-                <a class="edit" data-bs-toggle="modal" data-bs-target="#editRuta"
-                   data-ruta-id="${ruta.id_rondin}"
-                   data-ruta-nombre="${ruta.nombre}"
-                   data-ruta-descripcion="${ruta.descripcion}"
-                   data-ruta-hora-inicio="${ruta.hora_inicio}"
-                   data-ruta-hora-fin="${ruta.hora_fin}"
-                   data-ruta-estado="${ruta.estado}">
-                    <i class="bi bi-pencil-square"></i>
-                </a>
-            </td>
-        `;
+            tr.innerHTML = `
+                <td>${ruta.id_rondin}</td>
+                <td>${ruta.nombre}</td>
+                <td>${UtilsModule.formatTime(ruta.hora_inicio)}</td>
+                <td>${UtilsModule.formatTime(ruta.hora_fin)}</td>
+                <td>
+                    <span class="badge ${UtilsModule.getEstadoBadgeClass(ruta.estado)}">
+                        ${ruta.estado}
+                    </span>
+                </td>
+                <td>
+                    <a class="edit" data-bs-toggle="modal" data-bs-target="#editRuta"
+                       data-ruta-id="${ruta.id_rondin}"
+                       data-ruta-nombre="${ruta.nombre}"
+                       data-ruta-descripcion="${ruta.descripcion}"
+                       data-ruta-hora-inicio="${ruta.hora_inicio}"
+                       data-ruta-hora-fin="${ruta.hora_fin}"
+                       data-ruta-estado="${ruta.estado}">
+                        <i class="bi bi-pencil-square"></i>
+                    </a>
+                </td>
+            `;
 
-        tr.addEventListener('click', () => {
-            document.querySelectorAll("#data-table tbody tr").forEach(row => {
-                row.classList.remove('table-active');
+            tr.addEventListener('click', () => {
+                document.querySelectorAll("#data-table tbody tr").forEach(row => {
+                    row.classList.remove('table-active');
+                });
+                tr.classList.add('table-active');
+                showRouteOnMap(ruta.id_rondin);
             });
-            tr.classList.add('table-active');
-            showRouteOnMap(ruta.id_rondin);
+
+            fragment.appendChild(tr);
         });
 
-        fragment.appendChild(tr);
-    });
-
-    tableBody.innerHTML = "";
-    tableBody.appendChild(fragment);
-};
+        tableBody.innerHTML = "";
+        tableBody.appendChild(fragment);
+    };
 
     const showRouteOnMap = async (rutaId) => {
         try {
@@ -356,37 +342,7 @@ const RutasModule = (() => {
 // =============================================
 const AddRutaFormModule = (() => {
     let currentOrder = 1;
-    let selectedUbicaciones = []; // Array para rastrear ubicaciones seleccionadas y su orden
-
-    const init = () => {
-        const form = document.querySelector("#formAddRuta");
-        const modal = document.getElementById('addRuta');
-
-        if (!form || !modal) return;
-
-        const bsModal = new bootstrap.Modal(modal);
-
-        modal.addEventListener('show.bs.modal', handleModalShow);
-        document.getElementById('searchUbicaciones')?.addEventListener('input', handleSearchUbicaciones);
-        form.addEventListener("submit", handleFormSubmit);
-    };
-
-    const handleModalShow = async () => {
-        document.querySelector("#formAddRuta").reset();
-        document.getElementById('inicioRuta').value = '08:00';
-        document.getElementById('finRuta').value = '17:00';
-        currentOrder = 1;
-        selectedUbicaciones = []; // Reiniciar el array al mostrar el modal
-        await cargarUbicaciones();
-    };
-
-    const handleSearchUbicaciones = function () {
-        const searchTerm = this.value.toLowerCase();
-        document.querySelectorAll('#ubicaciones-list tr').forEach(row => {
-            const nombre = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-            row.style.display = nombre.includes(searchTerm) ? '' : 'none';
-        });
-    };
+    let selectedUbicaciones = [];
 
     const handleFormSubmit = async (event) => {
         event.preventDefault();
@@ -424,24 +380,41 @@ const AddRutaFormModule = (() => {
             throw new Error('La hora de fin debe ser posterior a la hora de inicio');
         }
 
-        const ubicacionesOrdenadas = getSelectedUbicaciones();
-        if (ubicacionesOrdenadas.length === 0) {
+        if (selectedUbicaciones.length === 0) {
             throw new Error('Debe seleccionar al menos una ubicación');
         }
 
-        formData.append('ubicaciones', JSON.stringify(ubicacionesOrdenadas));
+        formData.append('ubicaciones', JSON.stringify(
+            selectedUbicaciones.map((ubicacion, index) => ({
+                id: ubicacion.id,
+                orden: index + 1
+            }))
+        ));
     };
 
-    const getSelectedUbicaciones = () => {
-        return [...selectedUbicaciones].sort((a, b) => a.orden - b.orden);
+    const handleModalShow = async () => {
+        document.querySelector("#formAddRuta").reset();
+        document.getElementById('inicioRuta').value = '08:00';
+        document.getElementById('finRuta').value = '17:00';
+        currentOrder = 1;
+        selectedUbicaciones = [];
+        await cargarUbicaciones();
+    };
+
+    const handleSearchUbicaciones = function () {
+        const searchTerm = this.value.toLowerCase();
+        document.querySelectorAll('#ubicaciones-list tr').forEach(row => {
+            const nombre = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            row.style.display = nombre.includes(searchTerm) ? '' : 'none';
+        });
     };
 
     const cargarUbicaciones = async () => {
         const ubicacionesList = document.getElementById('ubicaciones-list');
-        ubicacionesList.innerHTML = '';
+        ubicacionesList.innerHTML = '<tr><td colspan="3" class="text-center py-3">Cargando ubicaciones...</td></tr>';
 
         try {
-            const response = await fetch(API_ENDPOINTS.ubicaciones);
+            const response = await fetch(`${API_ENDPOINTS.ubicaciones}?_=${Date.now()}`);
             const result = await response.json();
 
             if (!result.data || result.data.length === 0) {
@@ -449,26 +422,31 @@ const AddRutaFormModule = (() => {
                 return;
             }
 
-            result.data.forEach(ubicacion => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="row-check">
-                        <input type="checkbox" class="form-check-input form-check-lg ubicacion-check" 
-                               value="${ubicacion.id}" data-nombre="${ubicacion.nombre}">
-                        <span class="orden-seleccion d-none"></span>
-                    </td>
-                    <td>${ubicacion.nombre}</td>
-                    <td><span class="badge ${UtilsModule.getEstadoBadgeClass(ubicacion.estado)}">
-                        ${ubicacion.estado}
-                    </span></td>
-                `;
-                ubicacionesList.appendChild(row);
-            });
-
+            renderUbicacionesList(ubicacionesList, result.data);
             setupCheckboxListeners();
         } catch (error) {
             showUbicacionesError(ubicacionesList, error);
         }
+    };
+
+    const renderUbicacionesList = (container, ubicaciones) => {
+        container.innerHTML = '';
+
+        ubicaciones.forEach(ubicacion => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="row-check">
+                    <input type="checkbox" class="form-check-input form-check-lg ubicacion-check" 
+                           value="${ubicacion.id}" data-nombre="${ubicacion.nombre}">
+                    <span class="orden-seleccion d-none"></span>
+                </td>
+                <td>${ubicacion.nombre}</td>
+                <td><span class="badge ${UtilsModule.getEstadoBadgeClass(ubicacion.estado)}">
+                    ${ubicacion.estado}
+                </span></td>
+            `;
+            container.appendChild(row);
+        });
     };
 
     const setupCheckboxListeners = () => {
@@ -478,7 +456,6 @@ const AddRutaFormModule = (() => {
                 const ordenSpan = this.nextElementSibling;
 
                 if (this.checked) {
-                    // Agregar al array de seleccionados con el orden actual
                     selectedUbicaciones.push({
                         id: ubicacionId,
                         orden: currentOrder++
@@ -486,7 +463,6 @@ const AddRutaFormModule = (() => {
                     ordenSpan.textContent = selectedUbicaciones.find(u => u.id === ubicacionId).orden;
                     ordenSpan.classList.remove('d-none');
                 } else {
-                    // Eliminar del array de seleccionados
                     selectedUbicaciones = selectedUbicaciones.filter(u => u.id !== ubicacionId);
                     ordenSpan.textContent = '';
                     ordenSpan.classList.add('d-none');
@@ -497,10 +473,7 @@ const AddRutaFormModule = (() => {
     };
 
     const reordenarSeleccionados = () => {
-        // Ordenar las ubicaciones por su orden actual
         selectedUbicaciones.sort((a, b) => a.orden - b.orden);
-
-        // Reasignar órdenes secuenciales manteniendo la posición relativa
         selectedUbicaciones.forEach((ubicacion, index) => {
             ubicacion.orden = index + 1;
             const checkbox = document.querySelector(`.ubicacion-check[value="${ubicacion.id}"]`);
@@ -508,7 +481,6 @@ const AddRutaFormModule = (() => {
                 checkbox.nextElementSibling.textContent = ubicacion.orden;
             }
         });
-
         currentOrder = selectedUbicaciones.length + 1;
     };
 
@@ -531,6 +503,19 @@ const AddRutaFormModule = (() => {
             </tr>`;
     };
 
+    const init = () => {
+        const form = document.querySelector("#formAddRuta");
+        const modal = document.getElementById('addRuta');
+
+        if (!form || !modal) return;
+
+        const bsModal = new bootstrap.Modal(modal);
+
+        modal.addEventListener('show.bs.modal', handleModalShow);
+        document.getElementById('searchUbicaciones')?.addEventListener('input', handleSearchUbicaciones);
+        form.addEventListener("submit", handleFormSubmit);
+    };
+
     return { init };
 })();
 
@@ -539,67 +524,6 @@ const AddRutaFormModule = (() => {
 // =============================================
 const EditRutaFormModule = (() => {
     let selectedUbicacionesOrderEdit = [];
-
-    const init = () => {
-        const modal = document.getElementById('editRuta');
-        const form = document.getElementById('formEditRuta');
-
-        if (!modal || !form) return;
-
-        const bsModal = new bootstrap.Modal(modal);
-
-        modal.addEventListener('show.bs.modal', handleModalShow);
-        document.getElementById('searchEditUbicaciones')?.addEventListener('input', handleSearchUbicaciones);
-        form.addEventListener("submit", handleFormSubmit);
-    };
-
-    const handleModalShow = async (event) => {
-        const button = event.relatedTarget;
-        if (!button) return;
-
-        const rutaData = getRutaDataFromButton(button);
-        populateFormFields(rutaData);
-
-        await cargarUbicacionesRuta(rutaData.id);
-    };
-
-    const getRutaDataFromButton = (button) => {
-        return {
-            id: button.getAttribute('data-ruta-id'),
-            nombre: button.getAttribute('data-ruta-nombre'),
-            descripcion: button.getAttribute('data-ruta-descripcion'),
-            horaInicio: button.getAttribute('data-ruta-hora-inicio'),
-            horaFin: button.getAttribute('data-ruta-hora-fin'),
-            estado: button.getAttribute('data-ruta-estado')
-        };
-    };
-
-    const populateFormFields = (rutaData) => {
-        document.getElementById('edit_idRuta').value = rutaData.id || '';
-        document.getElementById('edit_nombreRuta').value = rutaData.nombre || '';
-        document.getElementById('edit_descripcionRuta').value = rutaData.descripcion || '';
-        document.getElementById('edit_inicioRuta').value = rutaData.horaInicio || '08:00';
-        document.getElementById('edit_finRuta').value = rutaData.horaFin || '17:00';
-
-        const estadoSelect = document.getElementById('edit_estadoRuta');
-        if (rutaData.estado) {
-            const normalizedEstado = rutaData.estado.trim().toLowerCase();
-            for (let option of estadoSelect.options) {
-                if (option.value.toLowerCase() === normalizedEstado) {
-                    option.selected = true;
-                    break;
-                }
-            }
-        }
-    };
-
-    const handleSearchUbicaciones = function () {
-        const searchTerm = this.value.toLowerCase();
-        document.querySelectorAll('#edit_ubicaciones-list tr').forEach(row => {
-            const nombre = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-            row.style.display = nombre.includes(searchTerm) ? '' : 'none';
-        });
-    };
 
     const handleFormSubmit = async (event) => {
         event.preventDefault();
@@ -657,14 +581,62 @@ const EditRutaFormModule = (() => {
         }));
     };
 
+    const handleModalShow = async (event) => {
+        const button = event.relatedTarget;
+        if (!button) return;
+
+        const rutaData = getRutaDataFromButton(button);
+        populateFormFields(rutaData);
+
+        await cargarUbicacionesRuta(rutaData.id);
+    };
+
+    const getRutaDataFromButton = (button) => {
+        return {
+            id: button.getAttribute('data-ruta-id'),
+            nombre: button.getAttribute('data-ruta-nombre'),
+            descripcion: button.getAttribute('data-ruta-descripcion'),
+            horaInicio: button.getAttribute('data-ruta-hora-inicio'),
+            horaFin: button.getAttribute('data-ruta-hora-fin'),
+            estado: button.getAttribute('data-ruta-estado')
+        };
+    };
+
+    const populateFormFields = (rutaData) => {
+        document.getElementById('edit_idRuta').value = rutaData.id || '';
+        document.getElementById('edit_nombreRuta').value = rutaData.nombre || '';
+        document.getElementById('edit_descripcionRuta').value = rutaData.descripcion || '';
+        document.getElementById('edit_inicioRuta').value = rutaData.horaInicio || '08:00';
+        document.getElementById('edit_finRuta').value = rutaData.horaFin || '17:00';
+
+        const estadoSelect = document.getElementById('edit_estadoRuta');
+        if (rutaData.estado) {
+            const normalizedEstado = rutaData.estado.trim().toLowerCase();
+            for (let option of estadoSelect.options) {
+                if (option.value.toLowerCase() === normalizedEstado) {
+                    option.selected = true;
+                    break;
+                }
+            }
+        }
+    };
+
+    const handleSearchUbicaciones = function () {
+        const searchTerm = this.value.toLowerCase();
+        document.querySelectorAll('#edit_ubicaciones-list tr').forEach(row => {
+            const nombre = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            row.style.display = nombre.includes(searchTerm) ? '' : 'none';
+        });
+    };
+
     const cargarUbicacionesRuta = async (rutaId) => {
         const ubicacionesList = document.getElementById('edit_ubicaciones-list');
         ubicacionesList.innerHTML = '<tr><td colspan="3" class="text-center py-3">Cargando ubicaciones...</td></tr>';
 
         try {
             const [allUbicacionesResponse, rutaUbicacionesResponse] = await Promise.all([
-                fetch(API_ENDPOINTS.ubicaciones),
-                fetch(`${API_ENDPOINTS.ubicacionesRuta}?id_rondin=${rutaId}`)
+                fetch(`${API_ENDPOINTS.ubicaciones}?_=${Date.now()}`),
+                fetch(`${API_ENDPOINTS.ubicacionesRuta}?_=${Date.now()}&id_rondin=${rutaId}`)
             ]);
 
             const allUbicaciones = await allUbicacionesResponse.json();
@@ -770,6 +742,19 @@ const EditRutaFormModule = (() => {
             </tr>`;
     };
 
+    const init = () => {
+        const modal = document.getElementById('editRuta');
+        const form = document.getElementById('formEditRuta');
+
+        if (!modal || !form) return;
+
+        const bsModal = new bootstrap.Modal(modal);
+
+        modal.addEventListener('show.bs.modal', handleModalShow);
+        document.getElementById('searchEditUbicaciones')?.addEventListener('input', handleSearchUbicaciones);
+        form.addEventListener("submit", handleFormSubmit);
+    };
+
     return { init };
 })();
 
@@ -780,18 +765,16 @@ const setupRondinesSearchAndFilter = () => {
     const inputBusqueda = document.getElementById('inputBusquedaRondin');
     const selectEstado = document.getElementById('selectEstadoRondin');
 
-    // Primera carga (no envía parámetro estado)
     RutasModule.fetchTableRutas('', undefined);
 
-    // Evento para el input de búsqueda con debounce
     if (inputBusqueda) {
-        inputBusqueda.addEventListener('input', debounce(function (e) {
+        // Línea corregida: Llama a debounce usando UtilsModule
+        inputBusqueda.addEventListener('input', UtilsModule.debounce(function (e) {
             const estado = selectEstado ? selectEstado.value : '';
             RutasModule.fetchTableRutas(e.target.value, estado);
         }, 300));
     }
 
-    // Evento para el select de estado
     if (selectEstado) {
         selectEstado.addEventListener('change', function (e) {
             const searchTerm = inputBusqueda ? inputBusqueda.value : '';
