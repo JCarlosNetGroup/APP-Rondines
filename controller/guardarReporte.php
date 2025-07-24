@@ -16,16 +16,19 @@ if (!isset($_SESSION['loggedin'])) {
 }
 
 // Obtener datos
+
 $id_ubicacion = $_POST['id_ubicacion'] ?? null;
 $id_rondin = $_POST['id_rondin'] ?? null;
 $observacion = $_POST['observacion'] ?? '';
 $empleado_id = $_SESSION['empleado_id'] ?? null;
+$cycle_id = $_POST['cycle_id'] ?? null;
 
 // Validaciones
 $errors = [];
 if (empty($id_ubicacion)) $errors[] = 'id_ubicacion';
 if (empty($id_rondin)) $errors[] = 'id_rondin';
 if (empty($empleado_id)) $errors[] = 'empleado_id (sesión)';
+if (empty($cycle_id)) $errors[] = 'cycle_id';
 
 if (!empty($errors)) {
     http_response_code(400);
@@ -39,9 +42,9 @@ if (!empty($errors)) {
 
 try {
     // Validar que el rondin_id exista
-    $stmt_check = $connection->prepare("SELECT id_rondin FROM rondin WHERE id_rondin = ?");
-    $stmt_check->execute([$id_rondin]);
-    $rondin_existe = $stmt_check->fetch();
+    $stmt_check_rondin = $connection->prepare("SELECT id_rondin FROM rondin WHERE id_rondin = ?");
+    $stmt_check_rondin->execute([$id_rondin]);
+    $rondin_existe = $stmt_check_rondin->fetch();
 
     if (!$rondin_existe) {
         throw new Exception('El ID de rondín no existe.');
@@ -73,31 +76,85 @@ try {
         }
     }
 
-    // Consulta SQL con rondin_id
-    $stmt = $connection->prepare("
-        INSERT INTO reporte (
-            ubicacion_id,
-            empleado_id,
-            rondin_id,
-            observacion,
-            imagen,
-            fecha
-        ) VALUES (?, ?, ?, ?, ?, NOW())
+    // --- LÓGICA DE ACTUALIZACIÓN ---
+    // Primero, intenta encontrar un reporte existente con estatus 'Pendiente'
+    // para esta combinación de ubicacion, empleado, rondin y ciclo.
+    $stmt_find_report = $connection->prepare("
+        SELECT id_reporte, imagen FROM reporte
+        WHERE ubicacion_id = ?
+          AND empleado_id = ?
+          AND rondin_id = ?
+          AND ciclo_id = ?
+          AND estatus = 'Pendiente'
     ");
+    $stmt_find_report->execute([$id_ubicacion, $empleado_id, $id_rondin, $cycle_id]);
+    $existing_report = $stmt_find_report->fetch(PDO::FETCH_ASSOC);
 
-    $stmt->execute([
-        $id_ubicacion,
-        $empleado_id,
-        $id_rondin,  // <-- Valor crítico
-        $observacion,
-        $nombre_foto
-    ]);
+    if ($existing_report) {
+        // Si existe un reporte pendiente, lo actualizamos
+        $reporte_id_to_update = $existing_report['id_reporte'];
+        $old_image_path = $existing_report['imagen'] ? '../assets/imagesReport/' . $existing_report['imagen'] : null;
 
-    echo json_encode([
-        'success' => true,
-        'reporte_id' => $connection->lastInsertId(),
-        'message' => 'Reporte guardado exitosamente.'
-    ]);
+        $update_query = "
+            UPDATE reporte SET
+                observacion = ?,
+                imagen = ?,
+                estatus = 'Completado',
+                fecha_escaneo = NOW()
+            WHERE id_reporte = ?
+        ";
+        $stmt_update = $connection->prepare($update_query);
+        $stmt_update->execute([$observacion, $nombre_foto, $reporte_id_to_update]);
+
+        // Si se subió una nueva imagen y existía una antigua, borra la antigua
+        if ($nombre_foto && $old_image_path && file_exists($old_image_path) && $old_image_path !== '../assets/imagesReport/default.jpg') { // Asegúrate de no borrar una imagen por defecto
+            unlink($old_image_path);
+        }
+
+        echo json_encode([
+            'success' => true,
+            'reporte_id' => $reporte_id_to_update,
+            'message' => 'Reporte actualizado exitosamente a Completado.'
+        ]);
+
+    } else {
+        // Si no se encontró un reporte pendiente (lo cual no debería pasar con nuestra lógica de pre-creación)
+        // Podrías decidir si insertas uno nuevo o lanzas un error.
+        // Por seguridad, lanzaremos un error, ya que esperamos que siempre haya un pendiente.
+        throw new Exception('No se encontró un reporte pendiente para actualizar con los datos proporcionados. El ciclo o la ubicación ya fueron completados, o los IDs no coinciden.');
+
+        /*
+        // --- Opcional: Si quieres permitir la inserción si no se encuentra (menos estricto) ---
+        $stmt_insert = $connection->prepare("
+            INSERT INTO reporte (
+                ubicacion_id,
+                empleado_id,
+                rondin_id,
+                ciclo_id,      -- ¡NUEVO: Incluir ciclo_id!
+                observacion,
+                imagen,
+                fecha,         -- fecha de creación (cuando se inicia el ciclo o se inserta aquí)
+                estatus,       -- estatus por defecto 'Completado' si se inserta aquí
+                fecha_escaneo  -- fecha de escaneo
+            ) VALUES (?, ?, ?, ?, ?, ?, NOW(), 'Completado', NOW())
+        ");
+
+        $stmt_insert->execute([
+            $id_ubicacion,
+            $empleado_id,
+            $id_rondin,
+            $cycle_id,
+            $observacion,
+            $nombre_foto
+        ]);
+
+        echo json_encode([
+            'success' => true,
+            'reporte_id' => $connection->lastInsertId(),
+            'message' => 'Nuevo reporte insertado y marcado como Completado.'
+        ]);
+        */
+    }
 
 } catch (Exception $e) {
     http_response_code(500);

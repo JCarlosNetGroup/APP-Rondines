@@ -1,11 +1,11 @@
 <?php
-
-header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
-header("Pragma: no-cache"); // HTTP 1.0.
-header("Expires: 0"); // Proxies.
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("Pragma: no-cache");
+header("Expires: 0");
+header('Content-Type: application/json');
 
 require_once '../includes/dbConnection.php';
-header('Content-Type: application/json');
+require_once '../controller/ValidarSesion.php';
 
 set_time_limit(30);
 ini_set('memory_limit', '128M');
@@ -16,38 +16,64 @@ try {
     $estadoFiltro = isset($_GET['estado']) ? $_GET['estado'] : '';
     $searchWords = $searchTerm ? explode(' ', $searchTerm) : [];
 
-    // Consulta SQL base
+    // Validar empleado_id de la sesión
+    $empleadoId = $_SESSION['empleado_id'] ?? null;
+    if (!$empleadoId) {
+        throw new Exception('No se pudo obtener el ID del empleado de la sesión.');
+    }
+
+    // Consulta principal con subconsultas mejoradas
     $query = "SELECT
-                id_rondin,
-                nombre,
-                descripcion,
-                estado,
-                DATE_FORMAT(hora_inicio, '%H:%i') as hora_inicio,
-                DATE_FORMAT(hora_fin, '%H:%i') as hora_fin      
-              FROM rondin";
+        r.id_rondin,
+        r.nombre,
+        r.descripcion,
+        r.estado,
+        DATE_FORMAT(r.hora_inicio, '%H:%i') as hora_inicio,
+        DATE_FORMAT(r.hora_fin, '%H:%i') as hora_fin,
+        (
+            SELECT COALESCE(MAX(rep.ciclo_id), 0)
+            FROM reporte rep
+            WHERE rep.rondin_id = r.id_rondin
+            AND rep.empleado_id = :empleadoId
+            AND rep.ciclo_id > 0
+        ) AS current_cycle_id,
+        (
+            SELECT COUNT(*) 
+            FROM rutas_rondin rr 
+            WHERE rr.rondin_id = r.id_rondin
+        ) as total_ubicaciones,
+        (
+            SELECT COUNT(DISTINCT rep.ubicacion_id)
+            FROM reporte rep
+            WHERE rep.rondin_id = r.id_rondin
+            AND rep.empleado_id = :empleadoId
+            AND rep.ciclo_id = (
+                SELECT COALESCE(MAX(inner_rep.ciclo_id), 0)
+                FROM reporte inner_rep
+                WHERE inner_rep.rondin_id = r.id_rondin
+                AND inner_rep.empleado_id = :empleadoId
+                AND inner_rep.ciclo_id > 0
+            )
+            AND rep.estatus = 'Completado'  -- Filtro crucial añadido
+        ) as ubicaciones_escaneadas
+    FROM rondin r";
 
     // Array para condiciones WHERE
     $conditions = [];
 
-    // Lógica para el filtro de estado:
-    // - Primera carga (no parámetro estado): mostrar solo Activas
-    // - Estado vacío (seleccionó "Todos"): mostrar todos
-    // - Estado específico: filtrar por ese estado
+    // Filtro de estado
     if ($estadoFiltro === '' && !isset($_GET['estado'])) {
-        // Primera carga - mostrar solo Activas
-        $conditions[] = "estado = 'Activa'";
+        $conditions[] = "r.estado = 'Activa'";
     } elseif ($estadoFiltro !== '') {
-        // Estado específico seleccionado
-        $conditions[] = "estado = :estadoFiltro";
+        $conditions[] = "r.estado = :estadoFiltro";
     }
-    // Si $estadoFiltro es '' pero se envió el parámetro (seleccionó "Todos"), no filtramos
 
     // Búsqueda por término
     if (!empty($searchWords)) {
         $searchConditions = [];
         foreach ($searchWords as $index => $word) {
             $param = ":searchWord{$index}";
-            $searchConditions[] = "(nombre LIKE {$param} OR descripcion LIKE {$param} OR estado LIKE {$param})";
+            $searchConditions[] = "(r.nombre LIKE {$param} OR r.descripcion LIKE {$param} OR r.estado LIKE {$param})";
             $searchWords[$index] = "%{$word}%";
         }
         $conditions[] = "(" . implode(' AND ', $searchConditions) . ")";
@@ -57,10 +83,18 @@ try {
     if (!empty($conditions)) {
         $query .= " WHERE " . implode(' AND ', $conditions);
     }
+    
+    // Ordenamiento consistente
+    $query .= " ORDER BY r.nombre ASC";
 
     $stmt = $connection->prepare($query);
 
     // Bind parameters
+    $stmt->bindParam(':empleadoId', $empleadoId, PDO::PARAM_INT);
+    $stmt->bindParam(':empleadoId', $empleadoId, PDO::PARAM_INT);
+    $stmt->bindParam(':empleadoId', $empleadoId, PDO::PARAM_INT);
+    $stmt->bindParam(':empleadoId', $empleadoId, PDO::PARAM_INT);
+
     if ($estadoFiltro !== '' && isset($_GET['estado'])) {
         $stmt->bindParam(':estadoFiltro', $estadoFiltro, PDO::PARAM_STR);
     }
@@ -73,6 +107,7 @@ try {
 
     $stmt->execute();
     $rutas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt->closeCursor();
 
     if (empty($rutas)) {
         echo json_encode([
@@ -83,25 +118,28 @@ try {
         exit;
     }
 
-    // Para cada ruta, obtener sus ubicaciones en orden
+    // Lógica mejorada para asignar estado_ruta
     foreach ($rutas as &$ruta) {
-        $queryUbicaciones = "SELECT
-                rr.orden,
-                u.nombre AS nombre, 
-                u.id_ubicacion AS id,
-                u.descripcion AS descripcion, 
-                u.latitud,
-                u.longitud
-            FROM rutas_rondin rr
-            JOIN ubicacion u ON rr.ubicacion_id = u.id_ubicacion
-            WHERE rr.rondin_id = :id_rondin
-            ORDER BY rr.orden";
-
-        $stmtUbicaciones = $connection->prepare($queryUbicaciones);
-        $stmtUbicaciones->bindParam(':id_rondin', $ruta['id_rondin'], PDO::PARAM_INT);
-        $stmtUbicaciones->execute();
-
-        $ruta['ubicaciones'] = $stmtUbicaciones->fetchAll(PDO::FETCH_ASSOC);
+        $totalUbicaciones = (int)$ruta['total_ubicaciones'];
+        $ubicacionesEscaneadas = (int)$ruta['ubicaciones_escaneadas'];
+        $currentCycleId = (int)$ruta['current_cycle_id']; 
+        
+        if ($totalUbicaciones === 0) {
+            $ruta['estado_ruta'] = 'Sin Ubicaciones';
+            $ruta['current_cycle_id'] = 0;
+            $ruta['ubicaciones_escaneadas'] = 0;
+        } elseif ($currentCycleId === 0) {
+            $ruta['estado_ruta'] = 'Nuevo';
+            $ruta['ubicaciones_escaneadas'] = 0;
+        } elseif ($ubicacionesEscaneadas >= $totalUbicaciones && $totalUbicaciones > 0) {
+            $ruta['estado_ruta'] = 'Completado';
+        } elseif ($ubicacionesEscaneadas > 0 || $currentCycleId > 0) {
+            // Considerar como pendiente si hay al menos un escaneo o si hay un ciclo iniciado
+            $ruta['estado_ruta'] = 'Pendientes';
+        } else {
+            // Caso por defecto
+            $ruta['estado_ruta'] = 'Nuevo';
+        }
     }
     unset($ruta);
 
@@ -109,6 +147,7 @@ try {
         'success' => true,
         'rutas' => $rutas
     ]);
+
 } catch (PDOException $e) {
     error_log("Error en getRutas.php (PDO): " . $e->getMessage());
     echo json_encode([
@@ -124,3 +163,4 @@ try {
         'error' => $e->getMessage()
     ]);
 }
+?>

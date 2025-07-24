@@ -38,7 +38,9 @@ try {
             (SELECT COUNT(*) FROM incidencia x WHERE x.reporte_id = a.id_reporte) AS Incidencia,
             CONCAT(b.nombre, ' ', b.apellido) AS Guardia,
             a.observacion,
-            a.fecha
+            -- a.fecha,
+            a.fecha_escaneo,
+            a.estatus
         FROM reporte a
         JOIN empleado b ON a.empleado_id = b.id_empleado
         JOIN ubicacion c ON a.ubicacion_id = c.id_ubicacion
@@ -49,10 +51,10 @@ try {
 
     // Filtros de fecha
     if (!empty($fechaInicio)) {
-        $conditions[] = "a.fecha >= :fecha_inicio";
+        $conditions[] = "a.fecha_escaneo >= :fecha_inicio";
     }
     if (!empty($fechaFin)) {
-        $conditions[] = "a.fecha <= :fecha_fin";
+        $conditions[] = "a.fecha_escaneo <= :fecha_fin";
     }
 
     // Búsqueda
@@ -62,6 +64,7 @@ try {
             $searchConditions[] = "(
                 CONCAT(b.nombre, ' ', b.apellido) LIKE :searchWord{$index} OR
                 a.observacion LIKE :searchWord{$index} OR
+                a.estatus LIKE :searchWord{$index} OR
                 e.nombre LIKE :searchWord{$index} OR
                 c.nombre LIKE :searchWord{$index}
             )";
@@ -77,7 +80,7 @@ try {
     }
 
     // Ordenar
-    $sql .= " ORDER BY a.fecha DESC";
+    $sql .= " ORDER BY a.id_reporte DESC";
 
     // Preparar y ejecutar consulta de conteo
     $countStmt = $connection->prepare($countSql);

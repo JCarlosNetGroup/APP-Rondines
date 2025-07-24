@@ -21,7 +21,7 @@
                     </button>
                 </div>
                 <div class="col-8 text-center">
-                    <h1 class="h5 mb-0" id="ubicacion-nombre-header">Reporte de Ubicación</h1>
+                    <h1 class="h5 mb-0 pb-2" id="ubicacion-nombre-header">Reporte de Ubicación</h1>
                 </div>
                 <div class="col-2 text-end">
                     <!-- Espacio reservado para posible icono -->
@@ -33,6 +33,8 @@
             <form id="reporte-form">
                 <input type="hidden" id="id-ubicacion" name="id_ubicacion" value="">
                 <input type="hidden" id="id-rondin" name="id_rondin" value="">
+                <input type="hidden" id="cycle-id" name="cycle_id" value="">
+
 
                 <div class="card mb-3">
                     <div class="card-body">
@@ -107,6 +109,7 @@
                         <input type="hidden" id="incidencia-id-ubicacion" name="id_ubicacion">
                         <input type="hidden" id="incidencia-id-rondin" name="id_rondin">
                         <input type="hidden" id="incidencia-reporte-id" name="reporte_id">
+                        <input type="hidden" id="incidencia-cycle-id" name="cycle_id"> <!-- ¡NUEVO: Campo oculto para cycle_id en incidencia! -->
 
                         <div class="mb-3">
                             <label class="form-label">Nivel de Riesgo</label>

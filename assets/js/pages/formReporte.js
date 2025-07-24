@@ -42,9 +42,14 @@ document.addEventListener('DOMContentLoaded', function () {
         INCIDENCIA_CONTAINER: '#incidencia-container'
     };
 
+    const STORAGE_KEYS = {
+        REPORTE_GUARDADO: (id) => `reporteGuardado_${id}`
+    };
+
     const urlParams = new URLSearchParams(window.location.search);
     const ubicacionId = urlParams.get('id_ubicacion');
     const rondinId = urlParams.get('id_rondin');
+    const cycleId = urlParams.get('cycle_id');
     const fromScan = urlParams.get('from_scan') === 'true';
 
     let ubicacionData = null;
@@ -305,12 +310,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Módulo de Servicio de Datos ---
     const DataService = {
-        loadUbicacionData: async (idUbicacion) => {
+        loadUbicacionData: async () => {
             try {
-                const response = await fetch(`${API_ENDPOINTS.GET_UBICACION}?id_ubicacion=${idUbicacion}&id_rondin=${rondinId}`);
+                const params = new URLSearchParams({
+                    id_ubicacion: ubicacionId,
+                    id_rondin: rondinId,
+                    cycle_id: cycleId // Usamos cycleId obtenido de la URL
+                });
+
+                const response = await fetch(`${API_ENDPOINTS.GET_UBICACION}?${params.toString()}`);
 
                 if (!response.ok) {
-                    throw new Error('No se pudo cargar la información de la ubicación.');
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const data = await response.json();
@@ -318,13 +329,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (data.success && data.ubicacion) {
                     ubicacionData = data.ubicacion;
                     UIManager.updateUbicacionUI();
+
                 } else {
-                    await Utils.showAlert('No se encontraron datos para esta ubicación.', 'error');
-                    window.history.back();
+                    throw new Error(data.message || 'No se encontraron datos para esta ubicación.');
                 }
             } catch (error) {
                 console.error('Error cargando datos de ubicación:', error);
-                await Utils.showAlert('Error al cargar la información de la ubicación: ' + error.message, 'error');
+                await Utils.showAlert(`Error al cargar la información: ${error.message}`, 'error');
                 window.history.back();
             }
         },
@@ -340,6 +351,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             const formData = new FormData(Elements.reporteForm);
+            formData.append('cycle_id', cycleId);
+
             try {
                 const blob = Utils.dataURLtoBlob(Elements.fotoInput.value);
                 formData.append('foto', blob, 'foto_reporte.jpg');
@@ -367,18 +380,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     throw new Error(data.message || 'Error en el servidor');
                 }
 
+                //Solo si el reporte se guardó correctamente:
                 Elements.reporteForm.dataset.reporteId = data.reporte_id;
                 reporteGuardado = true;
+                localStorage.setItem(STORAGE_KEYS.REPORTE_GUARDADO(ubicacionId), 'true');
 
+                //Actualizamos la UI para marcar como completada
                 UIManager.updateUIAfterReporteSaved();
                 UIManager.updateReporteSubmitButton(true);
 
-                await Utils.showAlert('¡Reporte guardado exitosamente! Ahora puedes agregar incidencias si es necesario o finalizar.', 'success');
+                await Utils.showAlert('¡Reporte guardado exitosamente!', 'success');
 
-                // Redirigir con parámetro saved=true solo si venimos del escaneo
-                // if (fromScan) {
-                //     window.location.href = `ubicacionesRuta.php?id_rondin=${rondinId}&saved=true&id_ubicacion=${ubicacionId}`;
-                // }
+                // window.location.href = `ubicacionesRuta.php?id_rondin=${rondinId}&saved=true&id_ubicacion=${ubicacionId}&cycle_id=${cycleId}`;
 
             } catch (error) {
                 console.error('Error al guardar reporte:', error);
@@ -400,7 +413,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const formData = new FormData();
             formData.append('reporte_id', Elements.reporteForm.dataset.reporteId);
-            formData.append('ubicacion_id', Elements.idUbicacionInput.value);
+            formData.append('ubicacion_id', ubicacionId);
+            formData.append('rondin_id', rondinId);
+            formData.append('cycle_id', cycleId); // Añadir cycle_id
             formData.append('descripcion_incidencia', Elements.descripcionIncidencia.value);
             formData.append('riesgo', Utils.querySelector('input[name="riesgo"]:checked').value);
 
@@ -435,12 +450,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     UIManager.resetIncidenciaForm();
                     Elements.incidenciaModal.hide();
 
-                    // Actualizar UI como completado
                     UIManager.updateUIAfterReporteSaved();
                     UIManager.updateReporteSubmitButton(true);
 
                     setTimeout(() => {
-                        window.location.href = `ubicacionesRuta.php?id_rondin=${rondinId}&saved=true&id_ubicacion=${ubicacionId}`;
+                        window.location.href = `ubicacionesRuta.php?id_rondin=${rondinId}&saved=true&id_ubicacion=${ubicacionId}&cycle_id=${cycleId}`;
                     }, 1000);
                 } else {
                     throw new Error(data.message || 'Error desconocido al guardar incidencia');
@@ -487,16 +501,32 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- Módulo de Manejadores de Eventos ---
     const EventHandlers = {
         setupListeners: () => {
+
             // Botón de regresar
             Elements.backBtn.addEventListener('click', async (e) => {
-                if (reporteGuardado) {
-                    window.history.back();
+                const isReporteGuardado = reporteGuardado ||
+                    localStorage.getItem(STORAGE_KEYS.REPORTE_GUARDADO(ubicacionId)) === 'true';
+
+                if (isReporteGuardado) {
+                    const result = await Utils.showConfirmDialog({
+                        title: 'Regresar a la lista',
+                        text: '¿Estás seguro de que deseas regresar a la lista de ubicaciones? El reporte ya ha sido guardado.',
+                        confirmText: 'Sí, regresar',
+                        cancelText: 'Cancelar',
+                        icon: 'question'
+                    });
+
+                    if (result.isConfirmed) {
+                        localStorage.removeItem(STORAGE_KEYS.REPORTE_GUARDADO(ubicacionId));
+                        window.location.href = `ubicacionesRuta.php?id_rondin=${rondinId}&saved=true&id_ubicacion=${ubicacionId}&cycle_id=${cycleId}`;
+                    }
                 } else {
                     const result = await Utils.showConfirmDialog({
                         title: 'Salir sin guardar',
                         text: '¿Estás seguro de que deseas salir sin guardar el reporte? Los cambios no se guardarán.',
                         confirmText: 'Sí, salir',
-                        cancelText: 'Cancelar'
+                        cancelText: 'Cancelar',
+                        icon: 'warning'
                     });
 
                     if (result.isConfirmed) {
@@ -625,13 +655,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 if (result.isConfirmed) {
-                    // Redirigir con parámetro saved=true solo si venimos del escaneo
-                    if (fromScan) {
-                        window.location.href = `ubicacionesRuta.php?id_rondin=${rondinId}&saved=true&id_ubicacion=${ubicacionId}`;
-                    } else {
-                        window.location.href = `ubicacionesRuta.php?id_rondin=${rondinId}`;
-                    }
+                    localStorage.removeItem(STORAGE_KEYS.REPORTE_GUARDADO(ubicacionId));
+                    // Siempre redirigir con parámetros para actualizar la vista
+                    window.location.href = `ubicacionesRuta.php?id_rondin=${rondinId}&saved=true&id_ubicacion=${ubicacionId}&cycle_id=${cycleId}`;
                 }
+
             });
 
             // Validación en tiempo real
@@ -649,6 +677,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Función de Inicialización ---
     function init() {
+        // Limpiar estado al iniciar
+        localStorage.removeItem(STORAGE_KEYS.REPORTE_GUARDADO(ubicacionId));
+
         EventHandlers.setupListeners();
 
         Utils.hide(Elements.btnIncidencia);
@@ -656,16 +687,13 @@ document.addEventListener('DOMContentLoaded', function () {
         Utils.disable(Elements.btnIncidencia);
         Utils.disable(Elements.finalizarBtn);
 
-        if (ubicacionId && rondinId) {
-            Elements.idUbicacionInput.value = ubicacionId;
-            Elements.idRondinInput.value = rondinId;
-            Elements.incidenciaIdUbicacionInput.value = ubicacionId;
-            Elements.incidenciaIdRondinInput.value = rondinId;
-            DataService.loadUbicacionData(ubicacionId);
-        } else {
-            Utils.showAlert('Error: ID de ubicación o rondín no especificado.', 'error');
-            window.history.back();
-        }
+        // Asegurarse que los inputs tengan los valores correctos
+        Elements.idUbicacionInput.value = ubicacionId;
+        Elements.idRondinInput.value = rondinId;
+        Elements.incidenciaIdUbicacionInput.value = ubicacionId;
+        Elements.incidenciaIdRondinInput.value = rondinId;
+
+        DataService.loadUbicacionData();
     }
 
     // Inicializar la aplicación

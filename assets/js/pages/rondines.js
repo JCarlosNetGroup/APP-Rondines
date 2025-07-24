@@ -298,41 +298,56 @@ const RutasModule = (() => {
         tableBody.appendChild(fragment);
     };
 
-    const showRouteOnMap = async (rutaId) => {
-        try {
-            const ruta = rutasData.find(r => r.id_rondin == rutaId);
-            const mapHeaderTitle = document.querySelector('.map-header h5');
+const showRouteOnMap = async (rutaId) => {
+    try {
+        const ruta = rutasData.find(r => r.id_rondin == rutaId);
+        const mapHeaderTitle = document.querySelector('.map-header h5');
 
-            if (ruta && Array.isArray(ruta.ubicaciones)) {
-                if (ruta.ubicaciones.length > 0) {
-                    MapModule.drawRoute(ruta.ubicaciones);
-                    if (mapHeaderTitle) {
-                        mapHeaderTitle.textContent = `NETWORKS - Ruta: ${ruta.nombre}`;
-                    }
-                } else {
-                    NotificationModule.showError('Esta ruta no tiene ubicaciones asignadas.');
-                    MapModule.clearMarkers();
-                    if (mapHeaderTitle) {
-                        mapHeaderTitle.textContent = 'NETWORKS';
-                    }
-                }
-            } else {
-                NotificationModule.showError('No se pudieron cargar las ubicaciones para esta ruta.');
-                MapModule.clearMarkers();
-                if (mapHeaderTitle) {
-                    mapHeaderTitle.textContent = 'NETWORKS';
-                }
+        if (!ruta) {
+            throw new Error('Ruta no encontrada');
+        }
+
+        // Obtener ubicaciones específicas para esta ruta
+        const ubicacionesResponse = await fetch(`${API_ENDPOINTS.ubicacionesRuta}?id_rondin=${rutaId}`);
+        const ubicacionesData = await ubicacionesResponse.json();
+
+        if (!ubicacionesData.success || !ubicacionesData.ubicaciones) {
+            throw new Error('No se pudieron cargar las ubicaciones');
+        }
+
+        // Normalizar los datos para que coincidan con lo que espera MapModule.drawRoute
+        const ubicacionesNormalizadas = ubicacionesData.ubicaciones.map(ubicacion => ({
+            id: ubicacion.id_ubicacion,
+            nombre: ubicacion.nombre,
+            descripcion: ubicacion.descripcion || '',
+            latitud: ubicacion.latitud,
+            longitud: ubicacion.longitud,
+            estado: 'activo', // Valor por defecto ya que no viene en el JSON
+            orden: ubicacion.orden
+        }));
+
+        if (ubicacionesNormalizadas.length > 0) {
+            MapModule.drawRoute(ubicacionesNormalizadas);
+            if (mapHeaderTitle) {
+                mapHeaderTitle.textContent = `NETWORKS - Ruta: ${ruta.nombre}`;
             }
-        } catch (error) {
-            console.error("Error al mostrar ruta:", error);
-            NotificationModule.showError('Error al cargar la ruta en el mapa: ' + error.message);
+        } else {
+            NotificationModule.showError('Esta ruta no tiene ubicaciones asignadas.');
             MapModule.clearMarkers();
-            const mapHeaderTitle = document.querySelector('.map-header h5');
             if (mapHeaderTitle) {
                 mapHeaderTitle.textContent = 'NETWORKS';
             }
         }
-    };
+    } catch (error) {
+        console.error("Error al mostrar ruta:", error);
+        NotificationModule.showError(error.message);
+        MapModule.clearMarkers();
+        const mapHeaderTitle = document.querySelector('.map-header h5');
+        if (mapHeaderTitle) {
+            mapHeaderTitle.textContent = 'NETWORKS';
+        }
+    }
+};
 
     return { fetchTableRutas };
 })();

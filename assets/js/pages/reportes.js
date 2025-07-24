@@ -41,7 +41,7 @@ function setupDateFilters() {
         currentFilters.fechaFin = fechaFin.value;
         currentPage = 1;
         fetchTableReports();
-        
+
         // Mostrar botón de limpiar si hay filtros aplicados
         if (currentFilters.fechaInicio || currentFilters.fechaFin) {
             btnLimpiar.classList.remove('d-none');
@@ -76,7 +76,7 @@ function setupSearch() {
 function setupItemsPerPageChange() {
     const itemsPerPageSelect = document.getElementById('itemsPerPageSelect');
     itemsPerPageSelect.addEventListener('change', function (e) {
-        itemsPerPage = parseInt(e.target.value); 
+        itemsPerPage = parseInt(e.target.value);
         currentPage = 1;
         fetchTableReports();
     });
@@ -141,17 +141,21 @@ function fetchTableReports() {
                     observacionCell.title = observacionText;
                     tr.appendChild(observacionCell);
 
-                    const fechaCell = document.createElement("td");
-                    const fecha = new Date(row.fecha);
-                    fechaCell.textContent = fecha.toLocaleString();
-                    tr.appendChild(fechaCell);
-
                     const incidenciaCell = document.createElement("td");
                     incidenciaCell.textContent = row.Incidencia;
                     if (row.Incidencia > 0) {
                         incidenciaCell.className = 'text-danger fw-bold';
                     }
                     tr.appendChild(incidenciaCell);
+
+                    tr.appendChild(createCell(row.estatus));
+
+                    const fechaCell = document.createElement("td");
+                    fechaCell.textContent = row.fecha_escaneo
+                        ? new Date(row.fecha_escaneo).toLocaleString()
+                        : "Por registrar";
+                    tr.appendChild(fechaCell);
+
 
                     const actionsTd = document.createElement("td");
                     const detailsLink = document.createElement("a");
@@ -162,7 +166,7 @@ function fetchTableReports() {
                     detailsLink.setAttribute("data-reporte-id", row.id_reporte);
                     detailsLink.setAttribute("data-reporte-guardia", row.Guardia);
                     detailsLink.setAttribute("data-reporte-observacion", row.observacion || 'Sin observación');
-                    detailsLink.setAttribute("data-reporte-fecha", fecha.toLocaleString());
+                    detailsLink.setAttribute("data-reporte-fecha", fechaCell.textContent);
                     detailsLink.setAttribute("data-reporte-incidencia", row.Incidencia);
 
                     const icon = document.createElement("i");
@@ -313,7 +317,7 @@ function setupModalDetails() {
             if (!button) return;
 
             const reportId = button.getAttribute('data-reporte-id');
-            
+
             // Limpiar contenidos previos
             document.getElementById('report-images-container').innerHTML = '';
             document.getElementById('incidencias-accordion').innerHTML = '';
@@ -361,7 +365,7 @@ async function fetchReportImages(reportId) {
 //* Mostrar imágenes del reporte
 function displayReportImages(images) {
     const container = document.getElementById('report-images-container');
-    
+
     if (images.length === 0) {
         container.innerHTML = '<div class="col-12"><p class="text-muted">No hay imágenes para este reporte</p></div>';
         return;
@@ -370,17 +374,30 @@ function displayReportImages(images) {
     images.forEach(image => {
         const col = document.createElement('div');
         col.className = 'col-md-4 col-6';
-        
+
         const imgWrapper = document.createElement('div');
         imgWrapper.className = 'ratio ratio-1x1';
-        
+
         const img = document.createElement('img');
         img.src = `../assets/imagesReport/${image}`;
         img.className = 'img-thumbnail object-fit-cover cursor-pointer';
         img.alt = 'Foto del reporte';
         img.style.cursor = 'pointer';
         img.loading = 'lazy';
-        
+
+        // Manejar el caso cuando la imagen no existe
+        img.onerror = function() {
+            // Reemplazar la imagen con un div que contiene el mensaje
+            imgWrapper.innerHTML = `
+                <div class="d-flex flex-column justify-content-center align-items-center h-100 bg-light">
+                    <i class="bi bi-image text-muted mb-2" style="font-size: 2rem;"></i>
+                    <p class="text-muted text-center">Por capturar evidencia</p>
+                </div>
+            `;
+            // Remover el event listener de click para que no se active el modal
+            imgWrapper.style.cursor = 'default';
+        };
+
         img.addEventListener('click', () => {
             Swal.fire({
                 imageUrl: `../assets/imagesReport/${image}`,
@@ -391,7 +408,7 @@ function displayReportImages(images) {
                 showCloseButton: true
             });
         });
-        
+
         imgWrapper.appendChild(img);
         col.appendChild(imgWrapper);
         container.appendChild(col);
@@ -410,15 +427,15 @@ async function fetchIncidenciasDetails(reportId) {
 //* Mostrar detalles de incidencias
 function displayIncidenciasDetails(incidencias) {
     const accordion = document.getElementById('incidencias-accordion');
-    
+
     incidencias.forEach((incidencia) => {
         const accordionItem = document.createElement('div');
         accordionItem.className = 'accordion-item mb-2';
-        
+
         const accordionHeader = document.createElement('h2');
         accordionHeader.className = 'accordion-header';
         accordionHeader.id = `incidencia-heading-${incidencia.id_incidencia}`;
-        
+
         const accordionButton = document.createElement('button');
         accordionButton.className = 'accordion-button collapsed';
         accordionButton.type = 'button';
@@ -432,17 +449,17 @@ function displayIncidenciasDetails(incidencias) {
                 </span>
             </div>
         `;
-        
+
         accordionHeader.appendChild(accordionButton);
-        
+
         const accordionCollapse = document.createElement('div');
         accordionCollapse.id = `incidencia-collapse-${incidencia.id_incidencia}`;
         accordionCollapse.className = 'accordion-collapse collapse';
         accordionCollapse.setAttribute('aria-labelledby', `incidencia-heading-${incidencia.id_incidencia}`);
-        
+
         const accordionBody = document.createElement('div');
         accordionBody.className = 'accordion-body';
-        
+
         const infoHtml = `
             <div class="row">
                 <div class="col-md-6">
@@ -459,31 +476,31 @@ function displayIncidenciasDetails(incidencias) {
             </div>
         `;
         accordionBody.innerHTML = infoHtml;
-        
+
         // Mostrar imágenes si existen
         if (incidencia.imagenes && incidencia.imagenes.length > 0) {
             const imagesTitle = document.createElement('h6');
             imagesTitle.className = 'mt-3 mb-2 fw-bold';
             imagesTitle.textContent = 'Fotos de la Incidencia:';
             accordionBody.appendChild(imagesTitle);
-            
+
             const imagesContainer = document.createElement('div');
             imagesContainer.className = 'row g-3';
-            
+
             incidencia.imagenes.forEach(imagen => {
                 const imgCol = document.createElement('div');
                 imgCol.className = 'col-md-4 col-6';
-                
+
                 const imgWrapper = document.createElement('div');
                 imgWrapper.className = 'ratio ratio-1x1';
-                
+
                 const img = document.createElement('img');
                 img.src = `../assets/imagesIncidencias/${imagen}`;
                 img.className = 'img-thumbnail object-fit-cover cursor-pointer';
                 img.alt = 'Foto de incidencia';
                 img.style.cursor = 'pointer';
                 img.loading = 'lazy';
-                
+
                 img.addEventListener('click', () => {
                     Swal.fire({
                         imageUrl: `../assets/imagesIncidencias/${imagen}`,
@@ -494,15 +511,15 @@ function displayIncidenciasDetails(incidencias) {
                         showCloseButton: true
                     });
                 });
-                
+
                 imgWrapper.appendChild(img);
                 imgCol.appendChild(imgWrapper);
                 imagesContainer.appendChild(imgCol);
             });
-            
+
             accordionBody.appendChild(imagesContainer);
         }
-        
+
         accordionCollapse.appendChild(accordionBody);
         accordionItem.appendChild(accordionHeader);
         accordionItem.appendChild(accordionCollapse);
@@ -527,12 +544,12 @@ function formatDateTime(dateString) {
 function getBadgeClassForGravedad(riesgo) {
     if (!riesgo) return 'bg-secondary';
     riesgo = riesgo.toLowerCase();
-    
-    if (riesgo.includes('alto') || riesgo.includes('critico') || riesgo.includes('emergencia')) 
+
+    if (riesgo.includes('alto') || riesgo.includes('critico') || riesgo.includes('emergencia'))
         return 'bg-danger';
-    if (riesgo.includes('medio') || riesgo.includes('moderado') || riesgo.includes('intermedio')) 
+    if (riesgo.includes('medio') || riesgo.includes('moderado') || riesgo.includes('intermedio'))
         return 'bg-warning text-dark';
-    if (riesgo.includes('bajo') || riesgo.includes('leve') || riesgo.includes('menor')) 
+    if (riesgo.includes('bajo') || riesgo.includes('leve') || riesgo.includes('menor'))
         return 'bg-primary';
     return 'bg-secondary';
 }
@@ -553,8 +570,8 @@ function debounce(func, wait) {
 //* Configura el botón de exportación a Excel
 function setupExcelExport() {
     const btnExportarExcel = document.getElementById('btnExportarExcel');
-    
-    btnExportarExcel.addEventListener('click', async function() {
+
+    btnExportarExcel.addEventListener('click', async function () {
         try {
             // Mostrar loading
             const loadingSwal = Swal.fire({
@@ -568,7 +585,7 @@ function setupExcelExport() {
 
             // Obtener todos los datos con los filtros actuales
             const data = await fetchAllDataForExport();
-            
+
             if (!data || data.length === 0) {
                 await Swal.fire({
                     icon: 'warning',
@@ -581,7 +598,7 @@ function setupExcelExport() {
 
             // Crear libro de Excel
             const wb = XLSX.utils.book_new();
-            
+
             // Preparar los datos para la hoja de cálculo
             const excelData = data.map(item => ({
                 'ID': item.id_reporte,
@@ -590,46 +607,51 @@ function setupExcelExport() {
                 'Ubicación': item.Ubicacion,
                 'Orden': item.Orden,
                 'Observación': item.observacion || 'Sin observación',
-                'Fecha': new Date(item.fecha).toLocaleString(),
-                'Incidencias': item.Incidencia
+                'Incidencias': item.Incidencia,
+                'Estado': item.estatus,
+                'Fecha de escaneo': item.fecha_escaneo
+                    ? new Date(item.fecha_escaneo).toLocaleString()
+                    : "Por registrar",
+
             }));
 
             const ws = XLSX.utils.json_to_sheet(excelData);
-            
+
             // Ajustar el ancho de las columnas
-            const wscols = [
-                {wch: 8},  // ID
-                {wch: 20}, // Rondín
-                {wch: 25}, // Guardia
-                {wch: 25}, // Ubicación
-                {wch: 8},  // Orden
-                {wch: 40}, // Observación
-                {wch: 20}, // Fecha
-                {wch: 12}  // Incidencias
+           const wscols = [
+                { wch: 8 },   // ID
+                { wch: 20 },  // Rondín
+                { wch: 25 },  // Guardia
+                { wch: 25 },  // Ubicación
+                { wch: 8 },   // Orden
+                { wch: 40 },   // Observación
+                { wch: 12 },   // Incidencias
+                { wch: 15 },   // Estado
+                { wch: 20 },  // Fecha de escaneo
             ];
             ws['!cols'] = wscols;
-            
+
             XLSX.utils.book_append_sheet(wb, ws, "Reportes");
 
             // Generar nombre de archivo con fecha y filtros
             let fileName = 'Reportes_';
-            
+
             if (currentFilters.fechaInicio || currentFilters.fechaFin) {
                 fileName += `_${currentFilters.fechaInicio || 'inicio'}_a_${currentFilters.fechaFin || 'hoy'}`;
             }
-            
+
             if (currentFilters.search) {
                 fileName += `_busqueda_${currentFilters.search.substring(0, 10)}`;
             }
-            
+
             fileName += `_${new Date().toISOString().slice(0, 10)}.xlsx`;
 
             // Cerrar loading
             await loadingSwal.close();
-            
+
             // Exportar el archivo
             XLSX.writeFile(wb, fileName);
-            
+
         } catch (error) {
             console.error('Error al exportar a Excel:', error);
             Swal.fire({
@@ -650,7 +672,7 @@ async function fetchAllDataForExport() {
     if (currentFilters.search) params.append('search', currentFilters.search);
     if (currentFilters.fechaInicio) params.append('fecha_inicio', currentFilters.fechaInicio);
     if (currentFilters.fechaFin) params.append('fecha_fin', currentFilters.fechaFin);
-    
+
     // Forzar a obtener todos los registros sin paginación
     params.append('page', 1);
     params.append('itemsPerPage', 1000000); // Un número muy grande para obtener todos
@@ -659,11 +681,11 @@ async function fetchAllDataForExport() {
 
     const response = await fetch(url);
     const data = await response.json();
-    
+
     if (!data.success) {
         throw new Error(data.message || 'Error al obtener datos para exportar');
     }
-    
+
     return data.data || [];
 }
 

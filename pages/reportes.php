@@ -83,8 +83,9 @@ include_once '../controller/ValidarSesion.php'
                                     <th>Ubicacion</th>
                                     <th>Orden</th>
                                     <th>Observación</th>
-                                    <th>Fecha</th>
                                     <th>Incidencia</th>
+                                    <th>Estado</th>
+                                    <th>Escaneado</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>

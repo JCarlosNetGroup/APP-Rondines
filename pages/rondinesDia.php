@@ -7,18 +7,19 @@ include_once '../controller/ValidarSesion.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rondines Diarios</title>
 
-    <!-- Bootstrap -->
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
-    <!-- Estilos rondinesDia -->
-    <link rel="stylesheet" href="../assets/css/pages/rondinesDia.css">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
-    <!-- Titulo Pestaña -->
-    <title>Rondines Diarios</title>
+    <!-- CSS personalizado -->
+    <link rel="stylesheet" href="../assets/css/pages/rondinesDia.css">
 </head>
 
 <body>
@@ -70,8 +71,9 @@ include_once '../controller/ValidarSesion.php';
         </header>
 
         <main>
-            <div id="rondines-list" class="list-group">
-                <!-- Contenedor de carga dinamica lista de rondines -->
+            
+            <div id="rondines-list" class="list-group list-group-flush rounded-0">
+                <!-- Contenedor de carga dinámica lista de rondines -->
             </div>
 
             <div id="empty-state" class="text-center py-5 d-none">
@@ -84,6 +86,9 @@ include_once '../controller/ValidarSesion.php';
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Script rondinesDia -->
     <script src="../assets/js/pages/rondinesDia.js"></script>

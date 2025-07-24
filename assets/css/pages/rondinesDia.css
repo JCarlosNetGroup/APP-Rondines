@@ -188,6 +188,13 @@ body.menu-open {
 .menu-items-top {
     flex: 1;
     overflow-y: auto;
-    max-height: calc(100vh - 200px); /* Ajusta según necesidad */
+    max-height: calc(100vh - 200px);
 }
 
+.bg-custom-new {
+    background-color: rgb(55, 84, 115) !important;
+}
+
+.bg-custom-progress{
+    background-color: rgb(225, 123, 14);
+}
