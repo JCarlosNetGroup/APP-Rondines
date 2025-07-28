@@ -55,8 +55,11 @@ include_once '../controller/ValidarSesion.php';
                             <a href="mobileDash.php" class="mobile-menu-item">
                                 <i class="bi bi-megaphone me-2"></i> Comunicados
                             </a>
-                            <a href="rondinesDia.php" class="mobile-menu-item active">
-                                <i class="bi bi-check-circle me-2"></i> Rondines Disponibles
+                            <a href="rondinesDia.php" class="mobile-menu-item">
+                                <i class="bi bi-list-task me-2"></i> Rondines Disponibles
+                            </a>
+                            <a href="rondinesPendientes.php" class="mobile-menu-item active d-none"> <!-- Se asgina clase d-none para ocultarlo del menu-->
+                                <i class="bi bi-hourglass-split me-2"></i> Rondines Pendientes
                             </a>
                             <div class="menu-items-bottom">
                                 <a href="../controller/logout.php" class="mobile-menu-item logout-item">

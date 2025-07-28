@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // NUEVA FUNCIÓN: Para llamar al backend e iniciar/reiniciar un ciclo
+    // FUNCIÓN: Para llamar al backend e iniciar/reiniciar un ciclo
     async function iniciarOReiniciarCiclo(rondinId) {
         try {
             const response = await fetch('../controller/iniciarCicloRondin.php', {
@@ -80,6 +80,35 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Error al iniciar o reiniciar el ciclo del rondín:', error);
             Swal.fire('Error', 'No se pudo iniciar/reiniciar el rondín: ' + error.message, 'error');
             return null; // Retorna null si hubo un error
+        }
+    }
+
+    // FUNCIÓN: Para cerrar/concluir un ciclo de rondín
+    async function cerrarCicloRondin(rondinId, cycleId, motivoCierre) {
+        try {
+            const response = await fetch('../controller/cerrarCicloRondin.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `id_rondin=${rondinId}&cycle_id=${cycleId}&motivo_cierre=${encodeURIComponent(motivoCierre)}`
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Error desconocido al cerrar el ciclo en el servidor.');
+            }
+
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error(data.message || 'Error en la respuesta de cierre de ciclo.');
+            }
+
+            return data.success;
+        } catch (error) {
+            console.error('Error al cerrar el ciclo del rondín:', error);
+            Swal.fire('Error', 'No se pudo cerrar el rondín: ' + error.message, 'error');
+            return false;
         }
     }
 
@@ -114,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         const ubicacionesFaltantes = totalUbicaciones - ubicacionesEscaneadas;
 
                         // Determinar estado y estilos del badge
-                        // Asegúrate que getRutas.php devuelve 'Nuevo', 'Completado', 'Pendientes'
+                        // Asegúrar que getRutas.php devuelve 'Nuevo', 'Completado', 'Pendientes'
                         const isNuevo = rondin.estado_ruta === 'Nuevo';
                         const isCompleto = rondin.estado_ruta === 'Completado';
                         const isIncompleto = rondin.estado_ruta === 'Pendientes';
@@ -137,17 +166,17 @@ document.addEventListener('DOMContentLoaded', function () {
                                                 </div>
                                             </div>`;
                             progressDescription = `<small class="text-success d-block mt-1">${ubicacionesEscaneadas} de ${totalUbicaciones} ubicaciones completadas</small>`;
-                       
+
                         } else if (isNuevo) {
                             badgeText = `<span class="fw-bold">Nuevo</span>`;
-                            badgeClass = 'bg-custom-new'; 
+                            badgeClass = 'bg-primary';
                             badgeIcon = '';
                             progressHtml = '';
                             progressDescription = `<small class="text-muted d-block mt-1">0 de ${totalUbicaciones} ubicaciones</small>`;
-                        
+
                         } else if (isIncompleto) {
-                            badgeText = `<span class="fw-bold p-1">${porcentajeCompletado}%</span>`;
-                            badgeClass = 'bg-custom-progress';
+                            badgeText = `<span class="fw-bold p-1">${porcentajeCompletado}% Completado</span>`;
+                            badgeClass = 'bg-warning text-dark';
                             badgeIcon = '';
                             progressHtml = `
                                             <div class="progress mt-2" style="height: 5px;">
@@ -160,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                                 </div>
                                             </div>`;
                             progressDescription = `<small class="text-muted d-block mt-1">${ubicacionesEscaneadas} de ${totalUbicaciones} completadas (${ubicacionesFaltantes} faltantes)</small>`;
-                        
+
                         } else if (isSinUbicaciones) {
                             badgeText = 'Sin Ubicaciones';
                             badgeClass = 'bg-secondary';
@@ -218,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Función para manejar el clic en un rondín y mostrar el modal
-    async function handleRondinClick(rondin) { // ¡IMPORTANTE: Haz esta función ASÍNCRONA!
+    async function handleRondinClick(rondin) {
         const totalUbicaciones = parseInt(rondin.total_ubicaciones) || 0;
         const ubicacionesEscaneadas = parseInt(rondin.ubicaciones_escaneadas) || 0;
         const ubicacionesFaltantes = totalUbicaciones - ubicacionesEscaneadas;
@@ -233,58 +262,60 @@ document.addEventListener('DOMContentLoaded', function () {
         let titleText, iconType, confirmButtonText, showCancelButton, cancelButtonText, showDenyButton, denyButtonText, htmlContent;
 
         if (isCompleto) {
-            titleText = 'Rondín Completado';
-            iconType = 'success';
-            confirmButtonText = 'Ver detalles';
-            showCancelButton = false;
-            cancelButtonText = '';
-            showDenyButton = true; // Opción de reiniciar
-            denyButtonText = 'Reiniciar';
-            denyButtonColor = '#dc3545';
+            titleText = '¿Quieres comenzar un nuevo rondín?';
+            iconType = 'question';
+            confirmButtonText = 'Sí, nuevo rondín';
+            showCancelButton = true;
+            cancelButtonText = 'Cancelar';
+            showDenyButton = false;
+            denyButtonText = '';
             htmlContent = `
-                <b>${rondin.nombre}</b>
-                <div class="progress mt-3" style="height: 10px;">
-                    <div class="progress-bar bg-success" style="width: 100%"></div>
-                </div>
-                <small class="text-muted d-block mt-1">
-                    ${ubicacionesEscaneadas} de ${totalUbicaciones} ubicaciones completadas
-                </small>`;
+            <b>${rondin.nombre}</b>
+            <div class="progress mt-3" style="height: 10px;">
+                <div class="progress-bar bg-success" style="width: 100%"></div>
+            </div>
+            <small class="text-muted d-block mt-1">
+                ${ubicacionesEscaneadas} de ${totalUbicaciones} ubicaciones completadas
+            </small>`;
+
         } else if (isNuevo) {
             titleText = `¿Qué deseas hacer con este rondín?`;
             iconType = 'question';
             confirmButtonText = 'Comenzar';
-            showCancelButton = false; // No hay opción de "Comenzar de nuevo" si es nuevo
+            showCancelButton = false;
             cancelButtonText = '';
-            showDenyButton = false; // No hay opción de reiniciar
+            showDenyButton = false;
             denyButtonText = '';
             htmlContent = `
-                <b>${rondin.nombre}</b>
-                <small class="text-muted d-block mt-3">
-                    Este rondín aún no ha sido iniciado.
-                </small>`;
+            <b>${rondin.nombre}</b>
+            <small class="text-muted d-block mt-3">
+                Este rondín aún no ha sido iniciado.
+            </small>`;
+
         } else if (isIncompleto) {
             titleText = `¿Qué deseas hacer con este rondín?`;
             iconType = 'question';
             confirmButtonText = 'Continuar';
-            showCancelButton = true;
-            cancelButtonText = 'Reiniciar progreso'; // Cambiado de "Comenzar de nuevo"
-            showDenyButton = false;
-            denyButtonText = '';
+            showCancelButton = false;
+            cancelButtonText = '';
+            showDenyButton = true;
+            denyButtonText = 'Cerrar rondín';
             htmlContent = `
-                <b>${rondin.nombre}</b>
-                <div class="progress mt-3" style="height: 10px;">
-                    <div class="progress-bar bg-primary"
-                        role="progressbar"
-                        style="width: ${Math.round((ubicacionesEscaneadas / totalUbicaciones) * 100)}%"
-                        aria-valuenow="${ubicacionesEscaneadas}"
-                        aria-valuemin="0"
-                        aria-valuemax="${totalUbicaciones}">
-                    </div>
+            <b>${rondin.nombre}</b>
+            <div class="progress mt-3" style="height: 10px;">
+                <div class="progress-bar bg-primary"
+                    role="progressbar"
+                    style="width: ${Math.round((ubicacionesEscaneadas / totalUbicaciones) * 100)}%"
+                    aria-valuenow="${ubicacionesEscaneadas}"
+                    aria-valuemin="0"
+                    aria-valuemax="${totalUbicaciones}">
                 </div>
-                <small class="text-muted d-block mt-1">
-                    ${ubicacionesEscaneadas} de ${totalUbicaciones} ubicaciones completadas (${ubicacionesFaltantes} faltantes)
-                </small>`;
-        } else if (isSinUbicaciones) { // Rondín sin ubicaciones
+            </div>
+            <small class="text-muted d-block mt-1">
+                ${ubicacionesEscaneadas} de ${totalUbicaciones} ubicaciones completadas (${ubicacionesFaltantes} faltantes)
+            </small>`;
+
+        } else if (isSinUbicaciones) {
             titleText = 'Rondín sin ubicaciones';
             iconType = 'info';
             confirmButtonText = 'Aceptar';
@@ -293,11 +324,10 @@ document.addEventListener('DOMContentLoaded', function () {
             showDenyButton = false;
             denyButtonText = '';
             htmlContent = `<b>${rondin.nombre}</b>
-                           <small class="text-muted d-block mt-3">
-                               Este rondín no tiene ubicaciones asignadas.
-                           </small>`;
+                       <small class="text-muted d-block mt-3">
+                           Este rondín no tiene ubicaciones asignadas.
+                       </small>`;
         }
-
 
         Swal.fire({
             title: titleText,
@@ -308,72 +338,83 @@ document.addEventListener('DOMContentLoaded', function () {
             confirmButtonColor: '#283747',
             showCancelButton: showCancelButton,
             cancelButtonText: cancelButtonText,
-            cancelButtonColor: '#ffc107',
+            cancelButtonColor: '#6c757d',
             showDenyButton: showDenyButton,
             denyButtonText: denyButtonText,
             denyButtonColor: '#dc3545'
-        }).then(async (result) => { // ¡IMPORTANTE: Haz esta función ASÍNCRONA!
+        }).then(async (result) => {
             if (isSinUbicaciones && result.isConfirmed) {
-                // Si no hay ubicaciones, solo cerrar el modal
                 return;
             }
 
             let currentRondinId = rondin.id_rondin;
-            let cycleIdToPass = currentCycleIdFromBackend; // Por defecto, usamos el del backend
+            let cycleIdToPass = currentCycleIdFromBackend;
 
             if (result.isConfirmed) {
-                let action = '';
-
                 if (isNuevo) {
-                    action = 'start';
-                    // Si es un rondín NUEVO, llamamos a iniciarOReiniciarCiclo para crear el ciclo
                     const newCycleId = await iniciarOReiniciarCiclo(currentRondinId);
                     if (newCycleId) {
                         cycleIdToPass = newCycleId;
                         localStorage.setItem(`rondin_${currentRondinId}_current_cycle`, cycleIdToPass);
-                    } else {
-                        return; // Si falla la creación del ciclo, no continuamos
+                        window.location.href = `ubicacionesRuta.php?id_rondin=${currentRondinId}&action=continue&cycle_id=${cycleIdToPass}`;
                     }
                 } else if (isCompleto) {
-                    action = 'view';
-                    // Para ver detalles de un rondín completado, usamos el ciclo_id que ya tenemos
-                    // No generamos uno nuevo.
+                    // Lógica para generar nuevo rondín
+                    const newCycleId = await iniciarOReiniciarCiclo(currentRondinId);
+                    if (newCycleId) {
+                        cycleIdToPass = newCycleId;
+                        localStorage.setItem(`rondin_${currentRondinId}_current_cycle`, cycleIdToPass);
+                        window.location.href = `ubicacionesRuta.php?id_rondin=${currentRondinId}&action=continue&cycle_id=${cycleIdToPass}`;
+                    }
                 } else if (isIncompleto) {
-                    action = 'continue';
-                    // Para continuar un rondín, usamos el ciclo_id que ya está en curso.
-                    // No generamos uno nuevo.
+                    window.location.href = `ubicacionesRuta.php?id_rondin=${currentRondinId}&action=continue&cycle_id=${cycleIdToPass}`;
                 }
-
-                // Si tenemos un cycleIdToPass válido, redirigimos
-                if (cycleIdToPass) {
-                    window.location.href = `ubicacionesRuta.php?id_rondin=${currentRondinId}&action=${action}&cycle_id=${cycleIdToPass}`;
-                } else {
-                    Swal.fire('Error', 'No se pudo obtener el ID del ciclo para continuar. Inténtalo de nuevo.', 'error');
-                }
-
-            } else if (result.dismiss === Swal.DismissReason.cancel || result.isDenied) {
-                // Esta es la lógica para los botones de "Reiniciar progreso" (cancel) o "Reiniciar" (deny)
-                Swal.fire({
-                    title: '¿Estás seguro?',
-                    text: 'Esto iniciará un nuevo ciclo para este rondín. El progreso anterior no se perderá, pero no será visible en este nuevo ciclo.',
-                    icon: 'warning',
+            } else if (result.isDenied && isIncompleto) {
+                // Lógica para cerrar el rondín (solo para rondines incompletos)
+                const { value: motivoCierre } = await Swal.fire({
+                    title: 'Cerrar rondín',
+                    input: 'textarea',
+                    inputLabel: 'Motivo del cierre',
+                    inputPlaceholder: 'Describe el motivo por el cual estás cerrando este rondín...',
+                    inputAttributes: {
+                        'aria-label': 'Describe el motivo del cierre'
+                    },
                     showCancelButton: true,
-                    confirmButtonColor: '#dc3545',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Sí, reiniciar',
-                    cancelButtonText: 'No, cancelar'
-                }).then(async (confirmRestartResult) => { // ¡IMPORTANTE: Esta función interna también debe ser ASÍNCRONA!
-                    if (confirmRestartResult.isConfirmed) {
-                        // Al reiniciar, SIEMPRE llamamos a iniciarOReiniciarCiclo para crear un nuevo ciclo
-                        const newCycleId = await iniciarOReiniciarCiclo(currentRondinId);
-                        if (newCycleId) {
-                            cycleIdToPass = newCycleId;
-                            localStorage.setItem(`rondin_${currentRondinId}_current_cycle`, cycleIdToPass);
-                            // Redirige a ubicacionesRuta.php con la acción 'restart' y el nuevo cycle_id
-                            window.location.href = `ubicacionesRuta.php?id_rondin=${currentRondinId}&action=restart&cycle_id=${cycleIdToPass}`;
+                    confirmButtonText: 'Confirmar cierre',
+                    cancelButtonText: 'Cancelar',
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'Debes ingresar un motivo para cerrar el rondín';
                         }
                     }
                 });
+
+                if (motivoCierre) {
+                    // Mostrar carga mientras se procesa el cierre
+                    Swal.fire({
+                        title: 'Cerrando rondín...',
+                        html: 'Por favor espera mientras registramos el cierre.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Llamar a la función para cerrar el ciclo
+                    const cierreExitoso = await cerrarCicloRondin(currentRondinId, cycleIdToPass, motivoCierre);
+
+                    if (cierreExitoso) {
+                        Swal.fire({
+                            title: 'Rondín cerrado',
+                            text: 'El rondín ha sido cerrado exitosamente.',
+                            icon: 'success',
+                            confirmButtonText: 'Aceptar'
+                        }).then(() => {
+                            // Recargar la lista de rondines para reflejar el cambio
+                            cargarRondines();
+                        });
+                    }
+                }
             }
         });
     }

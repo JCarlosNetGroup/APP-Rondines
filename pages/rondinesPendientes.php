@@ -7,7 +7,7 @@ include_once '../controller/ValidarSesion.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rondines Diarios</title>
+    <title>Rondines Pendientes</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -32,7 +32,7 @@ include_once '../controller/ValidarSesion.php';
                         <!-- Espacio para posible botón de retroceso -->
                     </div>
                     <div class="col-8 text-center">
-                        <h1 class="h5 mb-0">Rondines Disponibles</h1>
+                        <h1 class="h5 mb-0">Rondines Pendientes</h1>
                     </div>
                     <div class="col-2 text-end pe-3">
                         <button id="menu-btn" class="btn btn-sm border-light bg-transparent rounded-3 p-1" type="button">
@@ -59,7 +59,7 @@ include_once '../controller/ValidarSesion.php';
                         <a href="rondinesDia.php" class="mobile-menu-item active">
                             <i class="bi bi-list-task me-2"></i> Rondines Disponibles
                         </a>
-                        <a href="rondinesPendientes.php" class="mobile-menu-item active d-none">
+                        <a href="rondinesPendientes.php" class="mobile-menu-item active">
                             <i class="bi bi-hourglass-split me-2"></i> Rondines Pendientes
                         </a>
                         <div class="menu-items-bottom">
@@ -94,7 +94,7 @@ include_once '../controller/ValidarSesion.php';
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Script rondinesDia -->
-    <script src="../assets/js/pages/rondinesDia.js"></script>
+    <script src="../assets/js/pages/rondinesPendientes.js"></script>
 
 </body>
 

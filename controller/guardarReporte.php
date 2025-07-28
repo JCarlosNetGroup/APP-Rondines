@@ -118,42 +118,8 @@ try {
         ]);
 
     } else {
-        // Si no se encontró un reporte pendiente (lo cual no debería pasar con nuestra lógica de pre-creación)
-        // Podrías decidir si insertas uno nuevo o lanzas un error.
-        // Por seguridad, lanzaremos un error, ya que esperamos que siempre haya un pendiente.
         throw new Exception('No se encontró un reporte pendiente para actualizar con los datos proporcionados. El ciclo o la ubicación ya fueron completados, o los IDs no coinciden.');
 
-        /*
-        // --- Opcional: Si quieres permitir la inserción si no se encuentra (menos estricto) ---
-        $stmt_insert = $connection->prepare("
-            INSERT INTO reporte (
-                ubicacion_id,
-                empleado_id,
-                rondin_id,
-                ciclo_id,      -- ¡NUEVO: Incluir ciclo_id!
-                observacion,
-                imagen,
-                fecha,         -- fecha de creación (cuando se inicia el ciclo o se inserta aquí)
-                estatus,       -- estatus por defecto 'Completado' si se inserta aquí
-                fecha_escaneo  -- fecha de escaneo
-            ) VALUES (?, ?, ?, ?, ?, ?, NOW(), 'Completado', NOW())
-        ");
-
-        $stmt_insert->execute([
-            $id_ubicacion,
-            $empleado_id,
-            $id_rondin,
-            $cycle_id,
-            $observacion,
-            $nombre_foto
-        ]);
-
-        echo json_encode([
-            'success' => true,
-            'reporte_id' => $connection->lastInsertId(),
-            'message' => 'Nuevo reporte insertado y marcado como Completado.'
-        ]);
-        */
     }
 
 } catch (Exception $e) {

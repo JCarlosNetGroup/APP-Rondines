@@ -119,29 +119,49 @@ try {
     }
 
     // Lógica mejorada para asignar estado_ruta
-    foreach ($rutas as &$ruta) {
-        $totalUbicaciones = (int)$ruta['total_ubicaciones'];
-        $ubicacionesEscaneadas = (int)$ruta['ubicaciones_escaneadas'];
-        $currentCycleId = (int)$ruta['current_cycle_id']; 
-        
-        if ($totalUbicaciones === 0) {
-            $ruta['estado_ruta'] = 'Sin Ubicaciones';
-            $ruta['current_cycle_id'] = 0;
-            $ruta['ubicaciones_escaneadas'] = 0;
-        } elseif ($currentCycleId === 0) {
-            $ruta['estado_ruta'] = 'Nuevo';
-            $ruta['ubicaciones_escaneadas'] = 0;
-        } elseif ($ubicacionesEscaneadas >= $totalUbicaciones && $totalUbicaciones > 0) {
-            $ruta['estado_ruta'] = 'Completado';
-        } elseif ($ubicacionesEscaneadas > 0 || $currentCycleId > 0) {
-            // Considerar como pendiente si hay al menos un escaneo o si hay un ciclo iniciado
-            $ruta['estado_ruta'] = 'Pendientes';
-        } else {
-            // Caso por defecto
-            $ruta['estado_ruta'] = 'Nuevo';
-        }
+// Lógica mejorada para asignar estado_ruta basada en tu estructura
+foreach ($rutas as &$ruta) {
+    $totalUbicaciones = (int)$ruta['total_ubicaciones'];
+    $ubicacionesEscaneadas = (int)$ruta['ubicaciones_escaneadas'];
+    $currentCycleId = (int)$ruta['current_cycle_id'];
+    
+    // Verificar si el ciclo actual está cerrado
+    $cicloCerrado = false;
+    if ($currentCycleId > 0) {
+        $stmtCiclo = $connection->prepare("
+            SELECT COUNT(*) as cerrado 
+            FROM reporte 
+            WHERE ciclo_id = :cycleId 
+            AND estatus = 'Cerrado'
+            LIMIT 1
+        ");
+        $stmtCiclo->bindParam(':cycleId', $currentCycleId, PDO::PARAM_INT);
+        $stmtCiclo->execute();
+        $resultCiclo = $stmtCiclo->fetch(PDO::FETCH_ASSOC);
+        $cicloCerrado = ($resultCiclo['cerrado'] > 0);
+        $stmtCiclo->closeCursor();
     }
-    unset($ruta);
+
+    if ($totalUbicaciones === 0) {
+        $ruta['estado_ruta'] = 'Sin Ubicaciones';
+        $ruta['current_cycle_id'] = 0;
+        $ruta['ubicaciones_escaneadas'] = 0;
+    } elseif ($cicloCerrado) {
+        $ruta['estado_ruta'] = 'Nuevo';
+        $ruta['current_cycle_id'] = 0;
+        $ruta['ubicaciones_escaneadas'] = 0;
+    } elseif ($currentCycleId === 0) {
+        $ruta['estado_ruta'] = 'Nuevo';
+        $ruta['ubicaciones_escaneadas'] = 0;
+    } elseif ($ubicacionesEscaneadas >= $totalUbicaciones && $totalUbicaciones > 0) {
+        $ruta['estado_ruta'] = 'Completado';
+    } elseif ($ubicacionesEscaneadas > 0 || $currentCycleId > 0) {
+        $ruta['estado_ruta'] = 'Pendientes';
+    } else {
+        $ruta['estado_ruta'] = 'Nuevo';
+    }
+}
+unset($ruta);
 
     echo json_encode([
         'success' => true,
